@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "745002593519",
+    "project_id": "zero-8ff24",
+    "storage_bucket": "zero-8ff24.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:745002593519:android:a4cd56e99de2d1b0b1bf1a",
+        "android_client_info": {
+          "package_name": "com.example.zero"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqifooa9yt_tf6ZJbAuzTBj6kg7z0nMNE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:745002593519:android:79e7b54c5a83f2f2b1bf1a",
+        "android_client_info": {
+          "package_name": "com.zerofleets.zero_fleets"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqifooa9yt_tf6ZJbAuzTBj6kg7z0nMNE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
