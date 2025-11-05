@@ -107,7 +107,7 @@ class VehicleModel {
         // vehicleImage: map['vehicle_image'] ?? '',
         totalTrips: map['total_trips'] ?? 0,
         weeklyTrips: map['weekly_trips'] ?? 0,
-        lastOnline: map['last_online'] ?? DateTime.now().millisecondsSinceEpoch,
+        lastOnline: map['last_online'],
         // targetTrips: map['target_trips'] ?? 0,
         onDuty: map['on_duty'] == null
             ? null

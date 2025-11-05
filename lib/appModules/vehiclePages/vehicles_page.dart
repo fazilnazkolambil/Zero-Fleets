@@ -166,9 +166,11 @@ class VehiclesPage extends StatelessWidget {
                   vehicle.onDuty == null
                       ? CustomWidgets().textRow(
                           label: 'Last online',
-                          value: timeago.format(
-                              DateTime.fromMillisecondsSinceEpoch(
-                                  vehicle.lastOnline!)))
+                          value: vehicle.lastOnline == null
+                              ? "-N/A-"
+                              : timeago.format(
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                      vehicle.lastOnline!)))
                       : CustomWidgets().textRow(
                           label: 'Start time',
                           value: timeago.format(
@@ -283,7 +285,7 @@ class VehiclesPage extends StatelessWidget {
                                         TextButton(
                                             onPressed: () =>
                                                 Navigator.pop(context),
-                                            child: const Text('No')),
+                                            child: const Text('No, Cancel')),
                                         TextButton(
                                             onPressed: () async {
                                               await controller.removeVehicle(
@@ -293,7 +295,7 @@ class VehiclesPage extends StatelessWidget {
                                             child: Obx(() => controller
                                                     .isLoading.value
                                                 ? const CupertinoActivityIndicator()
-                                                : const Text('Yes'))),
+                                                : const Text('Yes, Confirm'))),
                                       ],
                                     ));
                           },
