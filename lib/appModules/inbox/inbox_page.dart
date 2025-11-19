@@ -22,17 +22,12 @@ class InboxPage extends StatelessWidget {
             return const Center(child: CupertinoActivityIndicator());
           }
           if (controller.inboxList.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('No new messages'),
-                  // TextButton.icon(
-                  //   onPressed: () => controller.fetchInbox(),
-                  //   label: const Text('Refresh'),
-                  //   icon: const Icon(Icons.refresh),
-                  // )
-                ],
+            return Center(
+              child: Text(
+                'Fleet invitations, Transaction requests, Driver requests will be listed here!',
+                textAlign: TextAlign.center,
+                style: Get.textTheme.titleMedium!
+                    .copyWith(color: Colors.grey[600]),
               ),
             );
           }

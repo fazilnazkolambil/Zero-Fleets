@@ -36,9 +36,9 @@ class _SlideToConfirmState extends State<SlideToConfirm> {
         height: widget.height,
         width: widget.width,
         decoration: BoxDecoration(
-          color: widget.backgroundColor,
-          borderRadius: BorderRadius.circular(widget.height / 2),
-        ),
+            color: widget.backgroundColor,
+            borderRadius: BorderRadius.circular(widget.height / 2),
+            border: Border.all(color: Colors.white12)),
         child: Stack(
           alignment: Alignment.centerLeft,
           children: [

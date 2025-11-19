@@ -29,7 +29,7 @@ class FleetController extends GetxController {
   TextEditingController bankingNameController = TextEditingController();
 
   Map<String, dynamic> fleetLatLong = {};
-
+  RxBool isFleetHiring = false.obs;
   final formkey = GlobalKey<FormState>();
 
   loadFleetData() {
@@ -40,9 +40,10 @@ class FleetController extends GetxController {
         "${currentFleet!.parkingLocation['latitude']}, ${currentFleet!.parkingLocation['longitude']}";
     driverTargetTrips.text = currentFleet!.targets['driver'].toString();
     vehicleTargetTrips.text = currentFleet!.targets['vehicle'].toString();
-    upiController.text = currentFleet!.upiId;
-    bankingNameController.text = currentFleet!.bankingName;
+    upiController.text = currentFleet!.upiId ?? '';
+    bankingNameController.text = currentFleet!.bankingName ?? '';
     fleetLatLong = currentFleet!.parkingLocation;
+    isFleetHiring.value = currentFleet!.isHiring;
   }
 
   RxBool isLoading = false.obs;
@@ -124,19 +125,21 @@ class FleetController extends GetxController {
     try {
       isLoading.value = true;
       FleetModel fleetModel = currentFleet!.copyWith(
-        fleetName: fleetNameController.text.trim(),
-        contactNumber: contactNumberController.text.trim(),
-        officeAddress: officeAddressController.text.trim(),
-        parkingLocation: fleetLatLong,
-        addedOn: DateTime.now().millisecondsSinceEpoch,
-        updatedOn: DateTime.now().millisecondsSinceEpoch,
-        upiId: upiController.text,
-        bankingName: bankingNameController.text.trim(),
-        targets: {
-          'driver': int.tryParse(driverTargetTrips.text) ?? 0,
-          'vehicle': int.tryParse(vehicleTargetTrips.text) ?? 0,
-        },
-      );
+          fleetName: fleetNameController.text.trim(),
+          contactNumber: contactNumberController.text.trim(),
+          officeAddress: officeAddressController.text.trim(),
+          parkingLocation: fleetLatLong,
+          addedOn: DateTime.now().millisecondsSinceEpoch,
+          updatedOn: DateTime.now().millisecondsSinceEpoch,
+          upiId: upiController.text.isEmpty ? null : upiController.text,
+          bankingName: bankingNameController.text.isEmpty
+              ? null
+              : bankingNameController.text.trim(),
+          targets: {
+            'driver': int.tryParse(driverTargetTrips.text) ?? 0,
+            'vehicle': int.tryParse(vehicleTargetTrips.text) ?? 0,
+          },
+          isHiring: isFleetHiring.value);
       await _firestore
           .collection('fleets')
           .doc(currentUser!.fleetId)

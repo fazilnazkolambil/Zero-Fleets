@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:zero/appModules/auth/auth_controller.dart';
 import 'package:zero/core/global_variables.dart';
 
@@ -57,12 +58,14 @@ class ProfileController extends GetxController {
 
   deleteUser() async {
     try {
+      if (currentFleet!.ownerId == currentUser!.uid) {
+        _firestore.collection('fleets').doc(currentFleet!.fleetId).delete();
+      } else {
+        leaveFleet();
+      }
       final user = FirebaseAuth.instance.currentUser!;
       final uid = user.uid;
       await _firestore.collection('users').doc(uid).delete();
-      await _firestore.collection('fleets').doc(currentUser!.fleetId).update({
-        'drivers': FieldValue.arrayRemove([currentUser!.uid])
-      });
       await user.delete();
       Get.put(AuthController()).logoutUser();
     } catch (e) {
@@ -111,8 +114,8 @@ class ProfileController extends GetxController {
 
   Future<void> deleteFleet() async {
     String fleetId = currentFleet!.fleetId;
-    final userRef = _firestore.collection('users').doc(currentUser!.uid);
     final fleetRef = _firestore.collection('fleets').doc(fleetId);
+    final userRef = _firestore.collection('users').doc(currentUser!.uid);
 
     _firestore.runTransaction(
       (transaction) async {
@@ -128,5 +131,19 @@ class ProfileController extends GetxController {
       },
     );
     Get.offAllNamed('/splash');
+  }
+
+  openLink({required String urlSuffix}) async {
+    try {
+      String url =
+          "https://fazilnazkolambil.github.io/Zero-Fleets---legal/$urlSuffix.html";
+      Uri uri = Uri.parse(url);
+      launchUrl(uri);
+    } catch (e) {
+      Fluttertoast.showToast(
+          msg: 'Cannot open the link. Please try again!',
+          backgroundColor: Colors.red);
+      log("Error opening link : $e");
+    }
   }
 }

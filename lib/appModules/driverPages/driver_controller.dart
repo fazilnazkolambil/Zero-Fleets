@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -14,11 +15,23 @@ import 'package:zero/models/user_model.dart';
 class DriverController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final box = Hive.box('zeroCache');
+  ScrollController scrollController = ScrollController();
+  RxBool isFabVisible = true.obs;
 
   @override
   void onInit() {
     loadDrivers();
+    scrollController.addListener(() {
+      isFabVisible.value = scrollController.position.userScrollDirection ==
+          ScrollDirection.forward;
+    });
     super.onInit();
+  }
+
+  @override
+  void dispose() {
+    scrollController.dispose();
+    super.dispose();
   }
 
   RxBool isLoading = false.obs;

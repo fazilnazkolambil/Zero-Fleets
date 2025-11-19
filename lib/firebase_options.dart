@@ -52,7 +52,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAqifooa9yt_tf6ZJbAuzTBj6kg7z0nMNE',
-    appId: '1:745002593519:android:79e7b54c5a83f2f2b1bf1a',
+    appId: '1:745002593519:android:94ae19f260057ec3b1bf1a',
     messagingSenderId: '745002593519',
     projectId: 'zero-8ff24',
     storageBucket: 'zero-8ff24.firebasestorage.app',
@@ -60,11 +60,12 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBo_VhOzWQSqcxPMcQLf61ZAj-dtsRaVr0',
-    appId: '1:745002593519:ios:3042d62af203d17ab1bf1a',
+    appId: '1:745002593519:ios:07b2cb7ac06eb34bb1bf1a',
     messagingSenderId: '745002593519',
     projectId: 'zero-8ff24',
     storageBucket: 'zero-8ff24.firebasestorage.app',
-    iosBundleId: 'com.example.zeroFleets',
+    iosClientId: '745002593519-g3rnaj4j9q1pukndtevns9u4s7blvqqa.apps.googleusercontent.com',
+    iosBundleId: 'com.zerofleets.zerofleets',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -73,7 +74,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '745002593519',
     projectId: 'zero-8ff24',
     storageBucket: 'zero-8ff24.firebasestorage.app',
-    iosBundleId: 'com.example.zeroFleets',
+    iosBundleId: 'com.zerofleets.zerofleets',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(

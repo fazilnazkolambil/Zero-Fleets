@@ -2,8 +2,11 @@ import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:new_version_plus/new_version_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:zero/appModules/dashboard/dashboard_page.dart';
 import 'package:zero/appModules/driverPages/driver_page.dart';
 import 'package:zero/appModules/fleetPages/fleet_list.dart';
@@ -13,6 +16,7 @@ import 'package:zero/appModules/inbox/inbox_page.dart';
 import 'package:zero/appModules/profile/profile_page.dart';
 import 'package:zero/appModules/transactions/transactions_page.dart';
 import 'package:zero/appModules/vehiclePages/vehicles_page.dart';
+import 'package:zero/core/const_page.dart';
 import 'package:zero/core/global_variables.dart';
 import 'package:zero/models/fleet_model.dart';
 import 'package:zero/models/user_model.dart';
@@ -21,18 +25,19 @@ import 'package:zero/models/vehicle_model.dart';
 class HomeController extends GetxController {
   @override
   void onInit() {
-    streamUser();
-    if (currentUser != null) {
-      loadFleet();
-    }
+    // streamUser();
+    // if (currentUser != null) {
+    //   loadFleet();
+    // }
+    checkForUpdation();
     listVehicles();
     super.onInit();
   }
 
   RxInt currentIndex = 0.obs;
   String userRole = currentUser!.userRole ?? 'USER';
-  final box = Hive.box('zeroCache');
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  bool hasUpdate = false;
 
   RxString searchkey = ''.obs;
   SearchController searchController = SearchController();
@@ -61,7 +66,7 @@ class HomeController extends GetxController {
       case ('FLEET_OWNER'):
         return [
           {
-            'label': 'Duty dashboard',
+            'label': 'Dashboard',
             'icon': Icons.dashboard,
             'page': DashboardPage(),
           },
@@ -121,16 +126,66 @@ class HomeController extends GetxController {
 
   RxBool isVehiclesLoading = false.obs;
   RxList<VehicleModel> vehicles = <VehicleModel>[].obs;
-  // loadVehicles() async {
-  //   vehicles.clear();
-  //   final cachedData = box.get('vehicles');
-  //   if (cachedData != null) {
-  //     vehicles.value = (jsonDecode(cachedData) as List)
-  //         .map((v) => VehicleModel.fromMap(v))
-  //         .toList();
-  //   }
-  //   listVehicles();
-  // }
+
+  Future<void> checkForUpdation() async {
+    final newVersion = NewVersionPlus(
+      androidId: "com.zerofleets.zerofleets",
+      iOSId: "com.zerofleets.zerofleets",
+    );
+
+    try {
+      final status = await newVersion.getVersionStatus();
+      if (status != null) {
+        appVersion = status.localVersion;
+        hasUpdate = status.canUpdate;
+        if (hasUpdate) {
+          Get.bottomSheet(
+            isDismissible: false,
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                  color: Get.theme.cardColor,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  )),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Text('New version available',
+                        style: Get.textTheme.titleLarge!),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          fixedSize: Size.fromWidth(w),
+                          foregroundColor: Colors.black,
+                          backgroundColor: ColorConst.primaryColor),
+                      onPressed: () async {
+                        final url = Uri.parse(status.appStoreLink);
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(
+                            url,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        }
+                      },
+                      child: const Text("Update Now"),
+                    ),
+                    TextButton(
+                      onPressed: () => SystemNavigator.pop(),
+                      child: const Text('Update Later'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint("Error checking app version: $e");
+    }
+  }
 
   listVehicles() async {
     try {
@@ -145,7 +200,6 @@ class HomeController extends GetxController {
         vehicles.value =
             data.docs.map((e) => VehicleModel.fromMap(e.data())).toList();
       }
-      // box.put('vehicles', jsonEncode(vehicles.toJson()));
     } catch (e) {
       log('Error getting vehicles in home controller: $e');
     } finally {
@@ -158,38 +212,5 @@ class HomeController extends GetxController {
       Get.back();
     }
     currentIndex.value = index;
-  }
-
-  loadFleet() async {
-    // final fleetCache = box.get('currentFleet');
-    // if (fleetCache != null) {
-    //   final fleet = jsonDecode(fleetCache);
-    //   currentFleet = FleetModel.fromMap(fleet);
-    // }
-    print('-- FLEET STREAM --');
-    _firestore
-        .collection('fleets')
-        .doc(currentUser!.fleetId)
-        .snapshots()
-        .listen((snapshot) {
-      if (snapshot.exists) {
-        currentFleet =
-            FleetModel.fromMap(snapshot.data() as Map<String, dynamic>);
-      }
-    });
-  }
-
-  streamUser() async {
-    print('-- USER STREAM --');
-    _firestore
-        .collection('users')
-        .doc(currentUser!.uid)
-        .snapshots()
-        .listen((snapshot) {
-      if (snapshot.exists) {
-        currentUser =
-            UserModel.fromMap(snapshot.data() as Map<String, dynamic>);
-      }
-    });
   }
 }

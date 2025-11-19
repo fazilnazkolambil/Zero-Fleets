@@ -18,12 +18,23 @@ class VehiclesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          controller.clearAll();
-          Get.to(() => const AddVehiclePage());
-        },
-        child: const Icon(Icons.add),
+      floatingActionButton: Obx(
+        () => AnimatedSlide(
+          duration: const Duration(milliseconds: 200),
+          offset:
+              controller.isFabVisible.value ? Offset.zero : const Offset(0, 2),
+          child: AnimatedOpacity(
+            opacity: controller.isFabVisible.value ? 1 : 0,
+            duration: const Duration(milliseconds: 200),
+            child: FloatingActionButton(
+              onPressed: () {
+                controller.clearAll();
+                Get.to(() => const AddVehiclePage());
+              },
+              child: const Icon(Icons.add),
+            ),
+          ),
+        ),
       ),
       appBar: AppBar(
         flexibleSpace: FlexibleSpaceBar(
@@ -127,6 +138,8 @@ class VehiclesPage extends StatelessWidget {
 
   Widget _buildVehiclesTab() {
     return ListView.builder(
+        controller: controller.scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(5),
         itemCount: controller.vehicles.length,
         itemBuilder: (context, index) {

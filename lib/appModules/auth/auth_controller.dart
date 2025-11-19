@@ -11,6 +11,7 @@ import 'package:zero/appModules/auth/onboarding_page.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:zero/core/global_variables.dart';
+import 'package:zero/core/subscriptionsController.dart';
 import 'package:zero/models/user_model.dart';
 
 class AuthController extends GetxController {
@@ -35,22 +36,29 @@ class AuthController extends GetxController {
   RxBool isLoading = false.obs;
 
   Future<void> checkAuth() async {
-    // logoutUser();
-    var user = _auth.currentUser;
-    final userCache = box.get('user');
-    if (user != null && userCache != null) {
-      final cacheUser = jsonDecode(userCache);
-      currentUser = UserModel.fromMap(cacheUser);
-      DocumentSnapshot userData =
-          await _firestore.collection('users').doc(currentUser!.uid).get();
-      currentUser = UserModel.fromMap(userData.data() as Map<String, dynamic>);
-      if (currentUser!.userRole == null) {
-        Get.off(() => OnboardingPage());
+    try {
+      var user = _auth.currentUser;
+      final userCache = box.get('user');
+
+      if (user != null && userCache != null) {
+        final cacheUser = jsonDecode(userCache);
+        currentUser = UserModel.fromMap(cacheUser);
+        DocumentSnapshot userData =
+            await _firestore.collection('users').doc(currentUser!.uid).get();
+        currentUser =
+            UserModel.fromMap(userData.data() as Map<String, dynamic>);
+
+        if (currentUser!.userRole == null) {
+          Get.off(() => OnboardingPage());
+        } else {
+          Get.put(SubscriptionsController());
+          Get.offNamed('/home');
+        }
       } else {
-        Get.offNamed('/home');
+        Get.offNamed('/login');
       }
-    } else {
-      Get.offNamed('/login');
+    } catch (e) {
+      logoutUser();
     }
   }
 
@@ -80,6 +88,7 @@ class AuthController extends GetxController {
         },
       );
     } catch (e) {
+      log("err:$e");
       authStatus.value = AuthStatus.error;
       authError.value = 'Error sending OTP : $e';
     }
@@ -206,6 +215,9 @@ class AuthController extends GetxController {
 
   Future<void> logoutUser() async {
     try {
+      if (Get.isRegistered<SubscriptionsController>()) {
+        Get.delete<SubscriptionsController>(force: true);
+      }
       clearAll();
       await FirebaseAuth.instance.signOut();
       currentFleet = null;

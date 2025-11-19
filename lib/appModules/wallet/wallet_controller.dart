@@ -60,8 +60,8 @@ class WalletController extends GetxController {
   }
 
   upiPayment() async {
-    String upiId = currentFleet!.upiId;
-    String name = currentFleet!.bankingName;
+    String upiId = currentFleet!.upiId!;
+    String name = currentFleet!.bankingName!;
     String amount = payingAmount.text;
     String transactionNote = 'Rent payment';
     final transactionRef =
@@ -75,33 +75,32 @@ class WalletController extends GetxController {
       return;
     }
 
+    // final url = Uri.parse(
+    //     'upi://pay?pa=$upiId&pn=$name&am=$amount&cu=INR&tn=$transactionNote');
+    // if (await canLaunchUrl(url)) {
+    //   await launchUrl(url);
+    // }
+
     var response = await UpiPay.initiateTransaction(
-        app: apps[0].upiApplication,
-        receiverUpiAddress: upiId,
-        receiverName: name,
-        transactionRef: transactionRef,
-        amount: amount,
-        transactionNote: transactionNote);
+      app: apps[1].upiApplication,
+      receiverUpiAddress: upiId,
+      receiverName: name,
+      transactionRef: transactionRef,
+      amount: amount,
+      transactionNote: transactionNote,
+      // merchantCode: '5511',
+    );
 
     String status = response.status!.name;
     if (status == 'failure') {
       Fluttertoast.showToast(
-          msg: 'Payment failed', backgroundColor: Colors.red);
+          msg:
+              "Payment failed. Please pay the amount from your UPI app and choose 'Pay cash' option",
+          backgroundColor: Colors.red);
       Get.back();
     } else {
       await makePayment('ONLINE');
     }
-    // Uri upiUrl = Uri.parse(
-    //     'upi://pay?pa=$upiId&pn=$name&am=$amount&cu=$currency&tn=${Uri.encodeComponent(transactionNote)}');
-    // try {
-    //   bool result = await launchUrl(upiUrl);
-    //   return result;
-    // } catch (e) {
-    //   print("error $e");
-    //   Fluttertoast.showToast(
-    //       msg: "No UPI Apps found!", backgroundColor: Colors.red);
-    //   return false;
-    // }
   }
 
   RxBool isPaymentLoading = false.obs;

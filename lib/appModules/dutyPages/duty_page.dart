@@ -39,67 +39,82 @@ class DutyPage extends StatelessWidget {
                                 duty.startTime))),
                     CustomWidgets().textRow(
                         label: 'End by',
-                        value:
-                            '${DateFormat('EEE dd/MMM, hh:mm a').format(DateTime.fromMillisecondsSinceEpoch(duty.startTime).add(Duration(hours: duty.selectedShift * 12)))} (${duty.selectedShift} Shift)'),
+                        value: DateFormat('EEE dd/MMM, hh:mm a').format(
+                            DateTime.fromMillisecondsSinceEpoch(duty.startTime)
+                                .add(
+                                    Duration(hours: duty.selectedShift * 12)))),
+                    CustomWidgets().textRow(
+                        label: 'Selected shift',
+                        value: "${duty.selectedShift * 12} hrs")
                   ],
                 ),
               ),
             ),
-            _textField(
-              textInputType: TextInputType.number,
-              labelText: 'Total trips',
-              textController: controller.totalTripsController,
-              maxLength: 2,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter total trips';
-                } else if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
-                  return 'Only numbers are allowed';
-                }
-                return null;
-              },
-            ),
-            _textField(
-              textInputType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              labelText: 'Total fair',
-              textController: controller.totalEarningsController,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter your total fair';
-                } else if (!RegExp(r'^\d*\.?\d*$').hasMatch(value)) {
-                  return 'Only numbers are allowed';
-                }
-                return null;
-              },
-            ),
-            _textField(
-              textInputType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              labelText: 'Toll',
-              textController: controller.tollController,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter the toll';
-                } else if (!RegExp(r'^\d*\.?\d*$').hasMatch(value)) {
-                  return 'Only numbers are allowed';
-                }
-                return null;
-              },
-            ),
-            _textField(
-              textInputType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              labelText: 'Cash collected',
-              textController: controller.cashCollectedController,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter the cash collected';
-                } else if (!RegExp(r'^\d*\.?\d*$').hasMatch(value)) {
-                  return 'Only numbers are allowed';
-                }
-                return null;
-              },
+            // OutlinedButton.icon(
+            //   onPressed: () => controller.extractUberDutyData(),
+            //   icon: const Icon(Icons.image_search_rounded),
+            //   label: const Text('Upload screenshot'),
+            // ),
+            Column(
+              children: [
+                _textField(
+                  textInputType: TextInputType.number,
+                  labelText: 'Total trips',
+                  textController: controller.totalTripsController,
+                  maxLength: 2,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter total trips';
+                    } else if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+                      return 'Only numbers are allowed';
+                    }
+                    return null;
+                  },
+                ),
+                _textField(
+                  textInputType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  labelText: 'Total fare',
+                  hint: 'Suggested fare + Tip',
+                  textController: controller.totalEarningsController,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your total fair';
+                    } else if (!RegExp(r'^\d*\.?\d*$').hasMatch(value)) {
+                      return 'Only numbers are allowed';
+                    }
+                    return null;
+                  },
+                ),
+                _textField(
+                  textInputType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  labelText: 'Toll',
+                  textController: controller.tollController,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the toll';
+                    } else if (!RegExp(r'^\d*\.?\d*$').hasMatch(value)) {
+                      return 'Only numbers are allowed';
+                    }
+                    return null;
+                  },
+                ),
+                _textField(
+                  textInputType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  labelText: 'Cash collected',
+                  textController: controller.cashCollectedController,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the cash collected';
+                    } else if (!RegExp(r'^\d*\.?\d*$').hasMatch(value)) {
+                      return 'Only numbers are allowed';
+                    }
+                    return null;
+                  },
+                ),
+              ],
             ),
             _textField(
               textInputType:
@@ -148,6 +163,7 @@ class DutyPage extends StatelessWidget {
     required String labelText,
     required TextEditingController textController,
     int? maxLength,
+    String? hint,
   }) {
     return Padding(
       padding: const EdgeInsets.all(12),
@@ -162,6 +178,7 @@ class DutyPage extends StatelessWidget {
         validator: validator,
         maxLength: maxLength,
         decoration: InputDecoration(
+            hintText: hint,
             counterText: '',
             fillColor: Colors.white12,
             label: Text(labelText),

@@ -20,13 +20,25 @@ class DriversPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-          floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              controller.foundUser.value = null;
-              controller.phoneController.clear();
-              Get.to(() => const AddDriverPage());
-            },
-            child: const Icon(Icons.person_add_alt_1),
+          floatingActionButton: Obx(
+            () => AnimatedSlide(
+              duration: const Duration(milliseconds: 200),
+              offset: controller.isFabVisible.value
+                  ? Offset.zero
+                  : const Offset(0, 2),
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: controller.isFabVisible.value ? 1 : 0,
+                child: FloatingActionButton(
+                  onPressed: () {
+                    controller.foundUser.value = null;
+                    controller.phoneController.clear();
+                    Get.to(() => const AddDriverPage());
+                  },
+                  child: const Icon(Icons.person_add_alt_1),
+                ),
+              ),
+            ),
           ),
           appBar: AppBar(
             flexibleSpace: FlexibleSpaceBar(
@@ -135,6 +147,8 @@ class DriversPage extends StatelessWidget {
 
   Widget _buildDriverTab() {
     return ListView.builder(
+        controller: controller.scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(5),
         itemCount: controller.driverList.length,
         itemBuilder: (context, index) {

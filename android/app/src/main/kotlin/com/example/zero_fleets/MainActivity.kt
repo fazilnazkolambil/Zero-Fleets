@@ -1,4 +1,4 @@
-package com.zerofleets.zero_fleets
+package com.zerofleets.zerofleets
 
 import io.flutter.embedding.android.FlutterActivity
 

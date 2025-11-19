@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -10,9 +11,16 @@ import 'package:zero/core/global_variables.dart';
 import 'package:zero/models/vehicle_model.dart';
 
 class VehicleController extends GetxController {
+  ScrollController scrollController = ScrollController();
+  RxBool isFabVisible = true.obs;
+
   @override
   void onInit() {
     loadVehicles();
+    scrollController.addListener(() {
+      isFabVisible.value = scrollController.position.userScrollDirection ==
+          ScrollDirection.forward;
+    });
     super.onInit();
   }
 

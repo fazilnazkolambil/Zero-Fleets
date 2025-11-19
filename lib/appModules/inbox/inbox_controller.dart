@@ -21,7 +21,6 @@ class InboxController extends GetxController {
   Future<void> fetchInbox() async {
     try {
       isLoading.value = true;
-      // inboxList.clear();
       print('-- INBOX STREAM --');
       _firestore
           .collection('inbox')
@@ -33,7 +32,7 @@ class InboxController extends GetxController {
             .map((e) => NotificationModel.fromJson(e.data()))
             .toList()
           ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
-        notificationCounts = event.docs.length;
+        notificationCounts = inboxList.length;
       });
     } finally {
       isLoading.value = false;

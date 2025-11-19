@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:zero/appModules/auth/auth_controller.dart';
+import 'package:zero/appModules/profile/profile_controller.dart';
 import 'package:zero/core/const_page.dart';
 import 'package:zero/customWidgets/page_view.dart';
 import 'package:pinput/pinput.dart';
@@ -211,7 +212,7 @@ class LoginPage extends GetView<AuthController> {
       onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
       onChanged: (value) async {
         if (value.length == 10) {
-          FocusManager.instance.primaryFocus!.unfocus();
+          FocusManager.instance.primaryFocus?.unfocus();
           await controller.verifyPhoneNumber();
         } else {
           null;
@@ -303,7 +304,8 @@ class LoginPage extends GetView<AuthController> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         TextButton(
-          onPressed: () {},
+          onPressed: () =>
+              Get.put(ProfileController()).openLink(urlSuffix: 'terms'),
           child: const Text(
             'Terms & Conditions',
             style: TextStyle(
@@ -317,7 +319,8 @@ class LoginPage extends GetView<AuthController> {
           style: TextStyle(color: Colors.white54),
         ),
         TextButton(
-          onPressed: () {},
+          onPressed: () =>
+              Get.put(ProfileController()).openLink(urlSuffix: 'privacy'),
           child: const Text(
             'Privacy Policy',
             style: TextStyle(

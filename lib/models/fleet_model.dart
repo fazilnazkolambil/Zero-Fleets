@@ -11,8 +11,8 @@ class FleetModel {
   final int addedOn;
   final int updatedOn;
   final Map<String, dynamic> targets;
-  final String upiId;
-  final String bankingName;
+  final String? upiId;
+  final String? bankingName;
 
   FleetModel({
     required this.fleetId,
@@ -27,8 +27,8 @@ class FleetModel {
     required this.addedOn,
     required this.updatedOn,
     required this.targets,
-    required this.upiId,
-    required this.bankingName,
+    this.upiId,
+    this.bankingName,
   });
 
   FleetModel copyWith({

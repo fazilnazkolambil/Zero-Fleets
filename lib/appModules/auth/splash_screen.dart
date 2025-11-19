@@ -93,7 +93,7 @@ class _AnimatedSplashLogoState extends State<AnimatedSplashLogo>
 
             const SizedBox(height: 30),
             Text(
-              "Loadind...",
+              "Loading...",
               style: Get.textTheme.bodyMedium!.copyWith(
                 color: Colors.white70,
                 fontWeight: FontWeight.bold,

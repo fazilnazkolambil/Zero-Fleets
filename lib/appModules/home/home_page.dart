@@ -65,14 +65,21 @@ class HomePage extends StatelessWidget {
             : AppBar(
                 title: _searchbar(homeController),
               ),
-        body: Obx(
-          () {
-            if (currentUser!.userRole == 'VEHICLE_OWNER') {
-              return _carOwnerView(homeController);
-            } else {
-              return _vehicleList(homeController, dutyController);
-            }
-          },
+        body: RefreshIndicator(
+          color: ColorConst.primaryColor,
+          onRefresh: () => homeController.listVehicles(),
+          child: Obx(
+            () {
+              if (homeController.isVehiclesLoading.value) {
+                return const Center(child: CupertinoActivityIndicator());
+              }
+              if (currentUser!.userRole == 'VEHICLE_OWNER') {
+                return _carOwnerView(homeController);
+              } else {
+                return _vehicleList(homeController, dutyController);
+              }
+            },
+          ),
         ));
   }
 
@@ -127,7 +134,8 @@ class HomePage extends StatelessWidget {
                               child: const Text('No, cancel')),
                           TextButton(
                               onPressed: () async {
-                                await dutyController.startDuty();
+                                await dutyController.startDuty(
+                                    userId: currentUser!.uid);
                                 Get.offAllNamed('/home');
                               },
                               child: const Text('Yes, confirm')),
@@ -172,9 +180,6 @@ class HomePage extends StatelessWidget {
   }
 
   _vehicleList(HomeController controller, DutyController dutyController) {
-    if (controller.isVehiclesLoading.value) {
-      return const Center(child: CupertinoActivityIndicator());
-    }
     List<VehicleModel> filteredAssets = controller.searchkey.value.isEmpty
         ? controller.vehicles
         : controller.vehicles.where((e) {
@@ -182,76 +187,83 @@ class HomePage extends StatelessWidget {
             return e.numberPlate.toLowerCase().contains(search);
           }).toList();
     if (filteredAssets.isEmpty) {
-      return const Center(child: Text('No vehicles found!'));
+      return Center(
+          child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text('No vehicles found!'),
+          TextButton.icon(
+            onPressed: () => controller.listVehicles(),
+            label: const Text('Refresh'),
+            icon: const Icon(Icons.refresh),
+          )
+        ],
+      ));
     }
 
-    return RefreshIndicator(
-        color: ColorConst.primaryColor,
-        onRefresh: () => controller.listVehicles(),
-        child: ListView.builder(
-          // physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          itemCount: filteredAssets.length,
-          itemBuilder: (context, index) {
-            final vehicle = filteredAssets[index];
-            return Obx(() {
-              bool isSelected = dutyController.selectedVehicle.value == vehicle;
-              return GestureDetector(
-                onTap: () {
-                  dutyController.selectedVehicle.value = vehicle;
-                },
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                        color: isSelected
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.1),
-                        width: 2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            Icons.directions_car,
-                            size: 32,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                            child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text("${vehicle.numberPlate} • "),
-                                Text(vehicle.vehicleModel,
-                                    style: Get.textTheme.bodySmall!
-                                        .copyWith(color: Colors.grey))
-                              ],
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                                'Last driver : ${vehicle.lastDriver ?? '-N/A-'}'),
-                          ],
-                        )),
-                      ],
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      itemCount: filteredAssets.length,
+      itemBuilder: (context, index) {
+        final vehicle = filteredAssets[index];
+        return Obx(() {
+          bool isSelected = dutyController.selectedVehicle.value == vehicle;
+          return GestureDetector(
+            onTap: () {
+              dutyController.selectedVehicle.value = vehicle;
+            },
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                border: Border.all(
+                    color: isSelected
+                        ? Colors.white
+                        : Colors.white.withValues(alpha: 0.1),
+                    width: 2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.directions_car,
+                        size: 32,
+                        color: Colors.grey[700],
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                        child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text("${vehicle.numberPlate} • "),
+                            Text(vehicle.vehicleModel,
+                                style: Get.textTheme.bodySmall!
+                                    .copyWith(color: Colors.grey))
+                          ],
+                        ),
+                        const SizedBox(height: 5),
+                        Text('Last driver : ${vehicle.lastDriver ?? '-N/A-'}'),
+                      ],
+                    )),
+                  ],
                 ),
-              );
-            });
-          },
-        ));
+              ),
+            ),
+          );
+        });
+      },
+    );
   }
 
   _carOwnerView(HomeController controller) {

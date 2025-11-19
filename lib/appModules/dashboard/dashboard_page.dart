@@ -1,7 +1,9 @@
 import 'package:expandable/expandable.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:zero/appModules/dutyPages/add_duty.dart';
 import 'package:zero/appModules/dashboard/dashboard_controller.dart';
 import 'package:zero/appModules/transactions/transaction_controller.dart';
 import 'package:zero/core/const_page.dart';
@@ -23,10 +25,29 @@ class DashboardPage extends StatelessWidget {
         weekStart: dashboardController.weekStart.value);
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () => Get.to(() => const AddDutyPage()),
-      //   child: const Icon(Icons.add),
-      // ),
+      floatingActionButton: Obx(
+        () {
+          if (DateTime.now()
+                  .difference(dashboardController.weekStart.value)
+                  .inDays >
+              7) {
+            return const SizedBox.shrink();
+          }
+          return AnimatedSlide(
+            duration: const Duration(milliseconds: 200),
+            offset: dashboardController.isFabVisible.value
+                ? Offset.zero
+                : const Offset(0, 2),
+            child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: dashboardController.isFabVisible.value ? 1 : 0,
+                child: FloatingActionButton(
+                  onPressed: () => Get.to(() => AddDutyPage()),
+                  child: const Icon(Icons.add),
+                )),
+          );
+        },
+      ),
       appBar: AppBar(
         flexibleSpace: FlexibleSpaceBar(
           background: Obx(
@@ -59,36 +80,45 @@ class DashboardPage extends StatelessWidget {
         double totalCashReceived = transactionController.totalPaid.value;
         double pendingCash = transactionController.totalPaid.value +
             dashboardController.toPay.value;
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: _statCard(
-                        value: totalCashReceived.toStringAsFixed(2),
-                        title: 'Cash received',
-                        subtitle: 'Total cash received',
-                        color: Colors.green),
-                  ),
-                  Expanded(
-                    child: _statCard(
-                        value: pendingCash.toStringAsFixed(2),
-                        title: pendingCash > 0 ? 'Drivers\' online' : 'Pending',
-                        subtitle: pendingCash > 0
-                            ? 'Cash in drivers\' online'
-                            : 'Drivers to pay',
-                        color: pendingCash < 0 ? Colors.red : Colors.green),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              _incomeBreakdown(),
-              const SizedBox(height: 10),
-              _rentBreakdown(),
-            ],
+        if (dashboardController.isDutyLoading.value) {
+          return const Center(child: CupertinoActivityIndicator());
+        }
+        return RefreshIndicator(
+          onRefresh: () async => await dashboardController.fetchWeeklyDuties(),
+          color: ColorConst.primaryColor,
+          child: SingleChildScrollView(
+            controller: dashboardController.scrollController,
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _statCard(
+                          value: totalCashReceived.toStringAsFixed(2),
+                          title: 'Cash received',
+                          subtitle: 'Total cash received',
+                          color: Colors.green),
+                    ),
+                    Expanded(
+                      child: _statCard(
+                          value: pendingCash.toStringAsFixed(2),
+                          title:
+                              pendingCash > 0 ? 'Drivers\' online' : 'Pending',
+                          subtitle: pendingCash > 0
+                              ? 'Cash in drivers\' online'
+                              : 'Drivers to pay',
+                          color: pendingCash < 0 ? Colors.red : Colors.green),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                _incomeBreakdown(),
+                const SizedBox(height: 10),
+                _rentBreakdown(),
+              ],
+            ),
           ),
         );
       }),
@@ -255,7 +285,7 @@ class DashboardPage extends StatelessWidget {
                           style: Get.textTheme.bodyMedium!.copyWith(),
                         ),
                         Text(
-                          "${DateFormat('jm').format(dutyStart)} - ${DateFormat('jm').format(dutyEnd)}",
+                          "${DateFormat('jm').format(dutyStart)} - ${DateFormat('jm').format(dutyEnd)} • ${duty.selectedShift > 1 ? '${duty.selectedShift} Shifts' : '1 Shift'}",
                           style: Get.textTheme.bodySmall!
                               .copyWith(color: Colors.white54),
                         ),
@@ -275,14 +305,27 @@ class DashboardPage extends StatelessWidget {
                                 : Colors.greenAccent,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          duty.selectedShift > 1
-                              ? '${duty.selectedShift} Shifts'
-                              : '1 Shift',
-                          style: const TextStyle(
-                              fontSize: 11, color: Colors.white54),
-                        ),
+                        const SizedBox(height: 10),
+                        if (DateTime.now()
+                                .difference(dashboardController.weekStart.value)
+                                .inDays <
+                            7)
+                          GestureDetector(
+                            onTap: () =>
+                                Get.to(() => AddDutyPage(dutymodel: duty)),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 5, horizontal: 12),
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(color: Colors.white12)),
+                              child: Text(
+                                'Edit',
+                                style: Get.textTheme.bodySmall!
+                                    .copyWith(color: Colors.blue),
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -308,10 +351,6 @@ class DashboardPage extends StatelessWidget {
                         CustomWidgets().textRow(
                             label: 'Vehicle rent',
                             value: "-${duty.vehicleRent.toStringAsFixed(2)}"),
-                        // CustomWidgets().textRow(
-                        //     label: 'Fuel expense',
-                        //     value:
-                        //         "-${duty.fuelExpense!.toStringAsFixed(2)}"),
                       ],
                     ),
                   ),

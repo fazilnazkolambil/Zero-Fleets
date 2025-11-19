@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:zero/appModules/auth/auth_controller.dart';
 import 'package:zero/appModules/fleetPages/fleet_info.dart';
 import 'package:zero/appModules/profile/profile_controller.dart';
@@ -170,11 +171,27 @@ class UserProfilePage extends StatelessWidget {
             ),
           ],
         ),
-        _buildStatCard(
-          context,
-          'Total balance',
-          '₹ ${currentUser!.earningDetails == null ? 0.0 : currentUser!.earningDetails!.totalBalance.toStringAsFixed(2)}',
-          Colors.orange,
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                context,
+                'Total balance',
+                '₹ ${currentUser!.earningDetails == null ? 0.0 : currentUser!.earningDetails!.totalBalance.toStringAsFixed(2)}',
+                Colors.orange,
+              ),
+            ),
+            Expanded(
+              child: _buildStatCard(
+                context,
+                'Member since',
+                DateFormat('dd/MM/yyyy').format(
+                    DateTime.fromMillisecondsSinceEpoch(
+                        currentUser!.createdAt)),
+                Colors.orange,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -269,14 +286,14 @@ class UserProfilePage extends StatelessWidget {
                                     child: const Text('No, Cancel')),
                                 TextButton(
                                     onPressed: () {
-                                      if (currentFleet!.drivers!.isNotEmpty) {
-                                        Fluttertoast.showToast(
-                                            msg:
-                                                'Remove all drivers before deleting',
-                                            backgroundColor: Colors.red);
-                                      } else {
-                                        controller.deleteFleet();
-                                      }
+                                      // if (currentFleet!.drivers!.isNotEmpty) {
+                                      //   Fluttertoast.showToast(
+                                      //       msg:
+                                      //           'Remove all drivers before deleting',
+                                      //       backgroundColor: Colors.red);
+                                      // } else {
+                                      controller.deleteFleet();
+                                      // }
                                     },
                                     child: const Text('Yes, Confirm')),
                               ],
@@ -331,9 +348,15 @@ class UserProfilePage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSubheading(title: 'Legal', icon: Icons.file_copy_outlined),
-        _buildOptions(label: 'Terms & conditions', onTap: () {}),
-        _buildOptions(label: 'Privacy Policy', onTap: () {}),
-        _buildOptions(label: 'About us', onTap: () {}),
+        _buildOptions(
+            label: 'Terms & conditions',
+            onTap: () async => await controller.openLink(urlSuffix: 'terms')),
+        _buildOptions(
+            label: 'Privacy Policy',
+            onTap: () async => await controller.openLink(urlSuffix: 'privacy')),
+        _buildOptions(
+            label: 'About us',
+            onTap: () async => await controller.openLink(urlSuffix: 'about')),
         _buildSubheading(
             title: 'Account settings', icon: Icons.account_circle_outlined),
         _buildOptions(
@@ -354,6 +377,14 @@ class UserProfilePage extends StatelessWidget {
                     backgroundColor: Colors.red);
                 return;
               }
+              // if (currentUser!.fleetId != null &&
+              //     currentFleet!.ownerId != currentUser!.uid) {
+              //   Fluttertoast.showToast(
+              //       msg: 'Please leave Fleet before deleting account',
+              //       backgroundColor: Colors.red);
+              //   return;
+              // }
+
               final confirm = await Get.dialog(AlertDialog(
                 title: const Text('Delete Account'),
                 content: const Text(

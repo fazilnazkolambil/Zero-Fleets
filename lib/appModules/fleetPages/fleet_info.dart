@@ -47,6 +47,8 @@ class FleetInfoPage extends StatelessWidget {
           key: controller.formkey,
           child: Column(
             children: [
+              _buildSubheading(
+                  icon: Icons.home_work_outlined, title: 'Basic details'),
               CustomWidgets().textField(
                 textInputType: TextInputType.text,
                 hintText: 'Your Fleet name',
@@ -81,6 +83,9 @@ class FleetInfoPage extends StatelessWidget {
                   return null;
                 },
               ),
+              const Divider(color: Colors.white12),
+              _buildSubheading(
+                  title: 'Location', icon: Icons.location_on_outlined),
               CustomWidgets().textField(
                 textInputType: TextInputType.multiline,
                 textCapitalization: TextCapitalization.sentences,
@@ -96,35 +101,6 @@ class FleetInfoPage extends StatelessWidget {
                   return null;
                 },
               ),
-              const Divider(color: Colors.white12),
-              CustomWidgets().textField(
-                textInputType: TextInputType.emailAddress,
-                textCapitalization: TextCapitalization.none,
-                hintText: 'exampleupi@bank',
-                label: 'UPI address',
-                textController: controller.upiController,
-                validator: (value) {
-                  if (!RegExp(r'^[\w.\-_]{2,256}@[a-zA-Z]{2,64}$')
-                      .hasMatch(value!)) {
-                    return 'Please enter a valid UPI address';
-                  }
-                  return null;
-                },
-              ),
-              CustomWidgets().textField(
-                textInputType: TextInputType.name,
-                textCapitalization: TextCapitalization.words,
-                hintText: 'Banking name',
-                label: 'Banking Name',
-                textController: controller.bankingNameController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your Banking name';
-                  }
-                  return null;
-                },
-              ),
-              const Divider(color: Colors.white12),
               CustomWidgets().textField(
                 readOnly: true,
                 label: 'Parking location',
@@ -155,7 +131,7 @@ class FleetInfoPage extends StatelessWidget {
                             ],
                           ),
                         )),
-                    child: const Text('Re fetch')),
+                    child: const Text('Re-fetch')),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Tap on the fetch location button';
@@ -163,8 +139,35 @@ class FleetInfoPage extends StatelessWidget {
                   return null;
                 },
               ),
-              const SizedBox(height: 20),
-              const Text('TARGET TRIPS'),
+              const Divider(color: Colors.white12),
+              _buildSubheading(
+                  title: 'Banking details', icon: Icons.attach_money),
+              CustomWidgets().textField(
+                textInputType: TextInputType.emailAddress,
+                textCapitalization: TextCapitalization.none,
+                hintText: 'exampleupi@bank',
+                label: 'UPI address',
+                textController: controller.upiController,
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return null;
+                  }
+                  if (!CustomWidgets().isMerchantUpi(value)) {
+                    return 'Please enter a valid merchant UPI address';
+                  }
+                  return null;
+                },
+              ),
+              CustomWidgets().textField(
+                textInputType: TextInputType.name,
+                textCapitalization: TextCapitalization.words,
+                hintText: 'Banking name',
+                label: 'Banking Name',
+                textController: controller.bankingNameController,
+              ),
+              const Divider(color: Colors.white12),
+              _buildSubheading(
+                  title: 'Fleet targets', icon: Icons.track_changes),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -188,9 +191,39 @@ class FleetInfoPage extends StatelessWidget {
                   )
                 ],
               ),
+              Row(
+                children: [
+                  Obx(
+                    () => Checkbox(
+                      activeColor: ColorConst.primaryColor,
+                      checkColor: Colors.black,
+                      value: controller.isFleetHiring.value,
+                      onChanged: (value) {
+                        controller.isFleetHiring.toggle();
+                      },
+                    ),
+                  ),
+                  const Text("I'm looking for drivers")
+                ],
+              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSubheading({required String title, required IconData icon}) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          Icon(icon),
+          const SizedBox(width: 10),
+          Text(title,
+              style: Get.textTheme.titleMedium!
+                  .copyWith(fontWeight: FontWeight.bold)),
+        ],
       ),
     );
   }

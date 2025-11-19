@@ -76,14 +76,25 @@ class FleetListPage extends StatelessWidget {
                       () => ElevatedButton.icon(
                         onPressed: controller.isSendingRequest.value
                             ? null
-                            : () => controller.joinRequest(fleet.ownerId),
+                            : () {
+                                Get.dialog(AlertDialog(
+                                  content: const Text(
+                                      'This feature will be available soon!',
+                                      textAlign: TextAlign.center),
+                                  actions: [
+                                    TextButton(
+                                        onPressed: () => Get.back(),
+                                        child: const Text('Ok'))
+                                  ],
+                                ));
+                                // controller.joinRequest(fleet.ownerId);
+                              },
                         label: controller.isSendingRequest.value
                             ? const CupertinoActivityIndicator()
                             : const Text('Send request'),
                         style: ElevatedButton.styleFrom(
-                            fixedSize: Size.fromWidth(w),
-                            foregroundColor: Colors.black,
-                            backgroundColor: ColorConst.primaryColor),
+                          fixedSize: Size.fromWidth(w),
+                        ),
                       ),
                     ),
                   ],

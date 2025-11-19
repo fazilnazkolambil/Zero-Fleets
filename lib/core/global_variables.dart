@@ -6,8 +6,8 @@ import 'package:zero/models/user_model.dart';
 
 double w = 0;
 double h = 0;
+String appVersion = '1.0.0.0';
 UserModel? currentUser;
-String appVersion = '1.0.0';
 FleetModel? currentFleet;
 int notificationCounts = 0;
 
@@ -92,5 +92,25 @@ class CustomWidgets {
     } else {
       return DateFormat('MMM dd, yyyy').format(date);
     }
+  }
+
+  bool isMerchantUpi(String upiId) {
+    final merchantSuffixes = [
+      'okbizaxis',
+      'iblbiz',
+      'yblbiz',
+      'paytm',
+      'pty',
+      'razorpay',
+      'cashfree',
+      'yesbiz',
+      'hdfcbiz',
+      'sbibiz',
+      'idbibiz',
+    ];
+
+    if (!upiId.contains('@')) return false;
+    final suffix = upiId.split('@').last.toLowerCase();
+    return merchantSuffixes.any((m) => suffix.contains(m));
   }
 }

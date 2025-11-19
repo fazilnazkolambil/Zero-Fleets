@@ -112,7 +112,7 @@ class OnboardingController extends GetxController {
         parkingLocation: fleetLatLong,
         addedOn: DateTime.now().millisecondsSinceEpoch,
         updatedOn: DateTime.now().millisecondsSinceEpoch,
-        upiId: upiController.text,
+        upiId: upiController.text.isNotEmpty ? upiController.text : null,
         bankingName: bankingNameController.text.trim(),
         targets: {
           'driver': int.tryParse(driverTargetTrips.text) ?? 0,

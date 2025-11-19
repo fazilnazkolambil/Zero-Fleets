@@ -292,7 +292,6 @@ class OnboardingPage extends GetView<AuthController> {
 
   Widget _fleetDetails() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(12),
       child: Form(
         key: onboardingController.formkey,
         child: Column(
@@ -316,6 +315,8 @@ class OnboardingPage extends GetView<AuthController> {
               ),
             ),
             const SizedBox(height: 32),
+            _buildSubheading(
+                icon: Icons.home_work_outlined, title: 'Basic details'),
             CustomWidgets().textField(
               textInputType: TextInputType.text,
               hintText: 'Your Fleet name',
@@ -350,11 +351,13 @@ class OnboardingPage extends GetView<AuthController> {
                 return null;
               },
             ),
+            const Divider(color: Colors.white12),
+            _buildSubheading(
+                title: 'Location', icon: Icons.location_on_outlined),
             CustomWidgets().textField(
               textInputType: TextInputType.multiline,
               textCapitalization: TextCapitalization.sentences,
-              hintText:
-                  'Apartment, street name, Town, District, State, Zipcode.',
+              hintText: 'Street name, Town, District, State, Zipcode.',
               label: 'Office address',
               maxLines: 3,
               textController: onboardingController.officeAddressController,
@@ -365,35 +368,6 @@ class OnboardingPage extends GetView<AuthController> {
                 return null;
               },
             ),
-            const Divider(color: Colors.white12),
-            CustomWidgets().textField(
-              textInputType: TextInputType.emailAddress,
-              textCapitalization: TextCapitalization.none,
-              hintText: 'exampleupi@bank',
-              label: 'UPI address',
-              textController: onboardingController.upiController,
-              validator: (value) {
-                if (!RegExp(r'^[\w.\-_]{2,256}@[a-zA-Z]{2,64}$')
-                    .hasMatch(value!)) {
-                  return 'Please enter a valid UPI address';
-                }
-                return null;
-              },
-            ),
-            CustomWidgets().textField(
-              textInputType: TextInputType.name,
-              textCapitalization: TextCapitalization.words,
-              hintText: 'Banking name',
-              label: 'Banking Name',
-              textController: onboardingController.bankingNameController,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter your Banking name';
-                }
-                return null;
-              },
-            ),
-            const Divider(color: Colors.white12),
             CustomWidgets().textField(
               readOnly: true,
               label: 'Parking location',
@@ -430,8 +404,34 @@ class OnboardingPage extends GetView<AuthController> {
                 return null;
               },
             ),
-            const SizedBox(height: 20),
-            const Text('TARGET TRIPS'),
+            // const Divider(color: Colors.white12),
+            // _buildSubheading(
+            //     title: 'Banking details', icon: Icons.attach_money),
+            // CustomWidgets().textField(
+            //   textInputType: TextInputType.emailAddress,
+            //   textCapitalization: TextCapitalization.none,
+            //   hintText: 'exampleupi@bank',
+            //   label: 'Merchant UPI',
+            //   textController: onboardingController.upiController,
+            //   validator: (value) {
+            //     if (value!.isEmpty) {
+            //       return null;
+            //     }
+            //     if (!CustomWidgets().isMerchantUpi(value)) {
+            //       return 'Please enter a valid merchant UPI address';
+            //     }
+            //     return null;
+            //   },
+            // ),
+            // CustomWidgets().textField(
+            //   textInputType: TextInputType.name,
+            //   textCapitalization: TextCapitalization.words,
+            //   hintText: 'Banking name',
+            //   label: 'Banking Name',
+            //   textController: onboardingController.bankingNameController,
+            // ),
+            const Divider(color: Colors.white12),
+            _buildSubheading(title: 'Fleet targets', icon: Icons.track_changes),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -441,7 +441,7 @@ class OnboardingPage extends GetView<AuthController> {
                       textInputType: TextInputType.number,
                       hintText: 'per shift',
                       maxLength: 2,
-                      label: 'Driver\'s target',
+                      label: 'Driver\'s trip target',
                       textController: onboardingController.driverTargetTrips),
                 ),
                 SizedBox(
@@ -474,7 +474,7 @@ class OnboardingPage extends GetView<AuthController> {
             Obx(
               () => ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                      fixedSize: Size.fromWidth(w),
+                      fixedSize: Size.fromWidth(w * 0.8),
                       backgroundColor: ColorConst.primaryColor,
                       foregroundColor: Colors.black),
                   onPressed: onboardingController.isLoading.value
@@ -493,6 +493,21 @@ class OnboardingPage extends GetView<AuthController> {
             )
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSubheading({required String title, required IconData icon}) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          Icon(icon),
+          const SizedBox(width: 10),
+          Text(title,
+              style: Get.textTheme.titleMedium!
+                  .copyWith(fontWeight: FontWeight.bold)),
+        ],
       ),
     );
   }

@@ -278,7 +278,24 @@ class WalletPage extends StatelessWidget {
                                     'Last transaction is on pending. Please wait until it get approved or declined',
                                 backgroundColor: Colors.red);
                           } else {
-                            await controller.makePayment('OFFLINE');
+                            Get.dialog(
+                                barrierDismissible: false,
+                                AlertDialog(
+                                  title: const Text('Payment'),
+                                  content: Text(
+                                      'Are you sure you paid ₹ ${controller.payingAmount.text} by Cash / External app?'),
+                                  actions: [
+                                    TextButton(
+                                        onPressed: () => Get.back(),
+                                        child: const Text('No, Cancel')),
+                                    TextButton(
+                                        onPressed: () async {
+                                          await controller
+                                              .makePayment('OFFLINE');
+                                        },
+                                        child: const Text('Yes, Confirm')),
+                                  ],
+                                ));
                           }
                         } else {
                           Fluttertoast.showToast(
@@ -289,25 +306,26 @@ class WalletPage extends StatelessWidget {
                       child: const Text('Pay cash')),
                 ),
                 const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black,
-                      ),
-                      onPressed: () async {
-                        if (controller.payingAmount.text.isEmpty ||
-                            double.parse(controller.payingAmount.text) <= 0) {
-                          Fluttertoast.showToast(
-                            msg: "Enter an amount to pay!",
-                            backgroundColor: Colors.red,
-                          );
-                          return;
-                        }
-                        await controller.upiPayment();
-                      },
-                      child: const Text('Pay online')),
-                ),
+                if (currentFleet!.upiId != null)
+                  Expanded(
+                    child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                        ),
+                        onPressed: () async {
+                          if (controller.payingAmount.text.isEmpty ||
+                              double.parse(controller.payingAmount.text) <= 0) {
+                            Fluttertoast.showToast(
+                              msg: "Enter an amount to pay!",
+                              backgroundColor: Colors.red,
+                            );
+                            return;
+                          }
+                          await controller.upiPayment();
+                        },
+                        child: const Text('Pay online')),
+                  ),
               ],
             );
           }),
