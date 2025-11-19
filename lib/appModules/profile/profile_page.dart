@@ -8,6 +8,8 @@ import 'package:zero/appModules/profile/profile_controller.dart';
 import 'package:zero/appModules/profile/user_info.dart';
 import 'package:zero/core/const_page.dart';
 import 'package:zero/core/global_variables.dart';
+import 'package:zero/models/fleet_model.dart';
+import 'package:zero/models/user_model.dart';
 
 class UserProfilePage extends StatelessWidget {
   final ProfileController controller = Get.isRegistered()
@@ -17,17 +19,18 @@ class UserProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = controller.subs.user.value!;
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          _buildAppBar(context),
+          _buildAppBar(context, user),
           SliverToBoxAdapter(
             child: Column(
               children: [
-                if (currentUser!.userRole == 'DRIVER')
-                  _buildStatsCards(context),
-                if (currentUser!.fleetId != null) _fleetDetails(),
-                settingsOptions(),
+                if (user.userRole == 'DRIVER') _buildStatsCards(context, user),
+                if (user.fleetId != null)
+                  _fleetDetails(controller.subs.fleet.value!, user),
+                settingsOptions(user),
                 SizedBox(
                   height: 50,
                   child: Center(
@@ -45,7 +48,7 @@ class UserProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildAppBar(BuildContext context) {
+  Widget _buildAppBar(BuildContext context, UserModel user) {
     return SliverAppBar(
       expandedHeight: 150,
       pinned: true,
@@ -61,19 +64,19 @@ class UserProfilePage extends StatelessWidget {
               opacity: percent < 0.5 ? 1.0 : 0.0,
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundImage: currentUser!.profilePicUrl.isNotEmpty
-                      ? NetworkImage(currentUser!.profilePicUrl)
+                  backgroundImage: user.profilePicUrl.isNotEmpty
+                      ? NetworkImage(user.profilePicUrl)
                       : null,
-                  child: currentUser!.profilePicUrl.isEmpty
+                  child: user.profilePicUrl.isEmpty
                       ? Text(
-                          currentUser!.fullName[0].toUpperCase(),
+                          user.fullName[0].toUpperCase(),
                           style: const TextStyle(
                               fontSize: 40, fontWeight: FontWeight.bold),
                         )
                       : null,
                 ),
                 title: Text(
-                  currentUser!.fullName,
+                  user.fullName,
                   style: Get.textTheme.titleLarge,
                 ),
               ),
@@ -100,12 +103,12 @@ class UserProfilePage extends StatelessWidget {
                       ),
                       child: CircleAvatar(
                         radius: 40,
-                        backgroundImage: currentUser!.profilePicUrl.isNotEmpty
-                            ? NetworkImage(currentUser!.profilePicUrl)
+                        backgroundImage: user.profilePicUrl.isNotEmpty
+                            ? NetworkImage(user.profilePicUrl)
                             : null,
-                        child: currentUser!.profilePicUrl.isEmpty
+                        child: user.profilePicUrl.isEmpty
                             ? Text(
-                                currentUser!.fullName[0].toUpperCase(),
+                                user.fullName[0].toUpperCase(),
                                 style: const TextStyle(
                                     fontSize: 40, fontWeight: FontWeight.bold),
                               )
@@ -119,13 +122,13 @@ class UserProfilePage extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            currentUser!.fullName,
+                            user.fullName,
                             style: Get.textTheme.titleLarge,
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            // currentUser!.email ?? currentUser!.phoneNumber,
-                            currentUser!.phoneNumber,
+                            // user.email ?? user.phoneNumber,
+                            user.phoneNumber,
                             softWrap: true,
                             overflow: TextOverflow.ellipsis,
                             style: Get.textTheme.titleSmall!
@@ -144,7 +147,7 @@ class UserProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsCards(BuildContext context) {
+  Widget _buildStatsCards(BuildContext context, UserModel user) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -157,7 +160,7 @@ class UserProfilePage extends StatelessWidget {
               child: _buildStatCard(
                 context,
                 'Total Duties',
-                '${currentUser!.earningDetails == null ? 0 : currentUser!.earningDetails!.totalDuties}',
+                '${user.earningDetails == null ? 0 : user.earningDetails!.totalDuties}',
                 Colors.blue,
               ),
             ),
@@ -165,7 +168,7 @@ class UserProfilePage extends StatelessWidget {
               child: _buildStatCard(
                 context,
                 'Total Trips',
-                '${currentUser!.earningDetails == null ? 0 : currentUser!.earningDetails!.totalTrips}',
+                '${user.earningDetails == null ? 0 : user.earningDetails!.totalTrips}',
                 Colors.orange,
               ),
             ),
@@ -177,7 +180,7 @@ class UserProfilePage extends StatelessWidget {
               child: _buildStatCard(
                 context,
                 'Total balance',
-                '₹ ${currentUser!.earningDetails == null ? 0.0 : currentUser!.earningDetails!.totalBalance.toStringAsFixed(2)}',
+                '₹ ${user.earningDetails == null ? 0.0 : user.earningDetails!.totalBalance.toStringAsFixed(2)}',
                 Colors.orange,
               ),
             ),
@@ -186,8 +189,7 @@ class UserProfilePage extends StatelessWidget {
                 context,
                 'Member since',
                 DateFormat('dd/MM/yyyy').format(
-                    DateTime.fromMillisecondsSinceEpoch(
-                        currentUser!.createdAt)),
+                    DateTime.fromMillisecondsSinceEpoch(user.createdAt)),
                 Colors.orange,
               ),
             ),
@@ -229,8 +231,8 @@ class UserProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _fleetDetails() {
-    bool isOwner = currentUser!.uid == currentFleet!.ownerId;
+  Widget _fleetDetails(FleetModel fleet, UserModel user) {
+    bool isOwner = user.uid == fleet.ownerId;
     return Container(
         margin: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -247,9 +249,9 @@ class UserProfilePage extends StatelessWidget {
                     radius: 25,
                     child: Icon(Icons.directions_car, color: Colors.grey),
                   ),
-                  title: Text(currentFleet!.fleetName),
+                  title: Text(fleet.fleetName),
                   subtitle: Text(
-                    currentFleet!.officeAddress,
+                    fleet.officeAddress,
                     style:
                         Get.textTheme.bodySmall!.copyWith(color: Colors.grey),
                   )),
@@ -286,7 +288,7 @@ class UserProfilePage extends StatelessWidget {
                                     child: const Text('No, Cancel')),
                                 TextButton(
                                     onPressed: () {
-                                      // if (currentFleet!.drivers!.isNotEmpty) {
+                                      // if (fleet.drivers!.isNotEmpty) {
                                       //   Fluttertoast.showToast(
                                       //       msg:
                                       //           'Remove all drivers before deleting',
@@ -309,12 +311,12 @@ class UserProfilePage extends StatelessWidget {
                           fixedSize: Size.fromWidth(w),
                           foregroundColor: Colors.red),
                       onPressed: () {
-                        if (currentUser!.onDuty != null) {
+                        if (user.onDuty != null) {
                           Fluttertoast.showToast(
                               msg:
                                   'Please end current duty before leaving this Fleet!',
                               backgroundColor: Colors.red);
-                        } else if (currentUser!.wallet < 0) {
+                        } else if (user.wallet < 0) {
                           Fluttertoast.showToast(
                               msg:
                                   'Please clear your wallet before leaving this Fleet!',
@@ -343,7 +345,7 @@ class UserProfilePage extends StatelessWidget {
         ));
   }
 
-  Widget settingsOptions() {
+  Widget settingsOptions(UserModel user) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -365,20 +367,20 @@ class UserProfilePage extends StatelessWidget {
         _buildOptions(
             label: 'Delete account',
             onTap: () async {
-              if (currentUser!.onDuty != null) {
+              if (user.onDuty != null) {
                 Fluttertoast.showToast(
                     msg: 'Please end the current duty before deleting account',
                     backgroundColor: Colors.red);
                 return;
               }
-              if (currentUser!.wallet < 0) {
+              if (user.wallet < 0) {
                 Fluttertoast.showToast(
                     msg: 'Please clear your wallet before deleting account',
                     backgroundColor: Colors.red);
                 return;
               }
-              // if (currentUser!.fleetId != null &&
-              //     currentFleet!.ownerId != currentUser!.uid) {
+              // if (user.fleetId != null &&
+              //     fleet.ownerId != user.uid) {
               //   Fluttertoast.showToast(
               //       msg: 'Please leave Fleet before deleting account',
               //       backgroundColor: Colors.red);
@@ -405,7 +407,7 @@ class UserProfilePage extends StatelessWidget {
         _buildOptions(
           label: 'Logout',
           onTap: () {
-            if (currentUser!.onDuty != null) {
+            if (user.onDuty != null) {
               Fluttertoast.showToast(
                   msg: 'Please end the current duty before logging out',
                   backgroundColor: Colors.red);

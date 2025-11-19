@@ -4,13 +4,19 @@ import 'package:zero/appModules/auth/auth_controller.dart';
 import 'package:zero/appModules/home/home_controller.dart';
 import 'package:zero/core/const_page.dart';
 import 'package:zero/core/global_variables.dart';
+import 'package:zero/core/subscriptionsController.dart';
 
 class DrawerPage extends StatelessWidget {
   final HomeController controller = Get.find<HomeController>();
+  final SubscriptionsController subs = Get.isRegistered()
+      ? Get.find<SubscriptionsController>()
+      : Get.put(SubscriptionsController());
   DrawerPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final user = subs.user.value!;
+    final fleet = subs.fleet.value!;
     return Drawer(
       backgroundColor: Get.theme.cardColor,
       width: MediaQuery.of(context).size.width * 0.75,
@@ -28,7 +34,7 @@ class DrawerPage extends StatelessWidget {
                       radius: 30,
                       child: Center(
                           child: Text(
-                        currentUser!.fullName[0].toUpperCase(),
+                        user.fullName[0].toUpperCase(),
                         style: Get.textTheme.headlineSmall,
                       )),
                     ),
@@ -38,11 +44,11 @@ class DrawerPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            currentUser!.fullName,
+                            user.fullName,
                             style: Get.textTheme.bodyLarge!,
                           ),
                           Text(
-                            currentFleet!.fleetName,
+                            fleet.fleetName,
                             style: Get.textTheme.bodySmall!,
                           )
                         ],

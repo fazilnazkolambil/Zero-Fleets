@@ -15,6 +15,12 @@ import 'package:zero/core/subscriptionsController.dart';
 import 'package:zero/models/user_model.dart';
 
 class AuthController extends GetxController {
+  @override
+  onInit() {
+    checkAuth();
+    super.onInit();
+  }
+
   String? userId;
   final box = Hive.box('zeroCache');
 
@@ -51,7 +57,7 @@ class AuthController extends GetxController {
         if (currentUser!.userRole == null) {
           Get.off(() => OnboardingPage());
         } else {
-          Get.put(SubscriptionsController());
+          Get.put(SubscriptionsController(), permanent: true);
           Get.offNamed('/home');
         }
       } else {
@@ -131,7 +137,7 @@ class AuthController extends GetxController {
           // if (currentUser!.userRole == 'FLEET_OWNER') {
           //   loadFleet();
           // }
-          Get.offAllNamed('/home');
+          Get.offAllNamed('/splash');
         }
       }
       authStatus.value = AuthStatus.initial;
@@ -220,7 +226,7 @@ class AuthController extends GetxController {
       }
       clearAll();
       await FirebaseAuth.instance.signOut();
-      currentFleet = null;
+      // currentFleet = null;
       currentUser = null;
       await box.clear();
       authStatus.value = AuthStatus.initial;

@@ -9,11 +9,13 @@ import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:zero/core/const_page.dart';
 import 'package:zero/core/global_variables.dart';
+import 'package:zero/core/subscriptionsController.dart';
 import 'package:zero/models/notification_model.dart';
 import 'package:zero/models/user_model.dart';
 
 class DriverController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final subs = Get.find<SubscriptionsController>();
   final box = Hive.box('zeroCache');
   ScrollController scrollController = ScrollController();
   RxBool isFabVisible = true.obs;
@@ -56,12 +58,12 @@ class DriverController extends GetxController {
       isLoading.value = true;
       var data = await _firestore
           .collection('users')
-          .where('uid', isNotEqualTo: currentFleet!.ownerId)
-          .where('fleet_id', isEqualTo: currentFleet!.fleetId)
+          // .where('uid', isNotEqualTo: subs.fleet.value?.ownerId)
+          .where('fleet_id', isEqualTo: subs.user.value?.fleetId)
           .get();
       List driver = data.docs.map((e) => e.data()).toList();
       driverList.value = driver.map((e) => UserModel.fromMap(e)).toList();
-      driverList.removeWhere((dr) => dr.uid == currentFleet!.ownerId);
+      driverList.removeWhere((dr) => dr.uid == subs.fleet.value!.ownerId);
       box.put('drivers', jsonEncode(driver));
       isLoading.value = false;
     } catch (e) {
@@ -113,11 +115,11 @@ class DriverController extends GetxController {
       NotificationModel notification = NotificationModel(
         id: '',
         notificationType: NotificationTypes.fleetInvitation,
-        senderId: currentUser!.uid,
+        senderId: subs.user.value!.uid,
         receiverId: driverId,
         status: 'PENDING',
         timestamp: DateTime.now().millisecondsSinceEpoch,
-        fleet: currentFleet,
+        fleet: subs.fleet.value,
       );
       await FirebaseFirestore.instance
           .collection('inbox')
@@ -143,7 +145,10 @@ class DriverController extends GetxController {
           .collection('users')
           .doc(userId)
           .update({'fleet_id': null, 'user_role': 'USER'});
-      await _firestore.collection('fleets').doc(currentFleet!.fleetId).update({
+      await _firestore
+          .collection('fleets')
+          .doc(subs.fleet.value!.fleetId)
+          .update({
         'drivers': FieldValue.arrayRemove([userId])
       });
       await listDrivers();

@@ -11,6 +11,7 @@ class SubscriptionsController extends GetxController {
 
   final Rx<UserModel?> user = Rx<UserModel?>(null);
   final Rx<FleetModel?> fleet = Rx<FleetModel?>(null);
+  final RxBool isUserLoaded = false.obs;
 
   StreamSubscription? _userSub;
   StreamSubscription? _fleetSub;
@@ -33,6 +34,7 @@ class SubscriptionsController extends GetxController {
         user.value = data;
         currentUser = data;
         _listenToFleet(data.fleetId);
+        isUserLoaded.value = true;
       }
     });
   }
@@ -54,7 +56,7 @@ class SubscriptionsController extends GetxController {
       if (snapshot.exists) {
         final data = FleetModel.fromMap(snapshot.data()!);
         fleet.value = data;
-        currentFleet = data;
+        // currentFleet = data;
       } else {
         _firestore.collection('users').doc(currentUser!.uid).update({
           'fleet_id': null,

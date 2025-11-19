@@ -15,7 +15,7 @@ class DutyPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final DriverOnDuty duty = currentUser!.onDuty!;
+    final DriverOnDuty duty = controller.subs.user.value!.onDuty!;
     return Scaffold(
       body: SingleChildScrollView(
         child: Form(

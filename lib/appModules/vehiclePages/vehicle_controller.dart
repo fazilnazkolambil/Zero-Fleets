@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,17 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:zero/core/global_variables.dart';
+import 'package:zero/core/subscriptionsController.dart';
 import 'package:zero/models/vehicle_model.dart';
 
 class VehicleController extends GetxController {
   ScrollController scrollController = ScrollController();
+  final subs = Get.find<SubscriptionsController>();
+
   RxBool isFabVisible = true.obs;
 
   @override
   void onInit() {
-    loadVehicles();
+    listVehicles();
     scrollController.addListener(() {
       isFabVisible.value = scrollController.position.userScrollDirection ==
           ScrollDirection.forward;
@@ -32,29 +32,18 @@ class VehicleController extends GetxController {
   final fixedRentController = TextEditingController();
   final rentRules = <RuleModel>[].obs;
 
-  final box = Hive.box('zeroCache');
+  // final box = Hive.box('zeroCache');
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   RxBool isVehiclesLoading = false.obs;
   RxList<VehicleModel> vehicles = <VehicleModel>[].obs;
-
-  loadVehicles() async {
-    vehicles.clear();
-    final cachedData = box.get('vehicles');
-    if (cachedData != null) {
-      vehicles.value = (jsonDecode(cachedData) as List)
-          .map((v) => VehicleModel.fromMap(v))
-          .toList();
-    }
-    listVehicles();
-  }
 
   listVehicles() async {
     try {
       isVehiclesLoading.value = true;
       var data = await _firestore
           .collection('vehicles')
-          .where('owner_id', isEqualTo: currentUser!.uid)
+          .where('owner_id', isEqualTo: subs.user.value?.uid)
           .get();
       vehicles.clear();
       List<Map<String, dynamic>> vehicleData = [];
@@ -63,7 +52,6 @@ class VehicleController extends GetxController {
         VehicleModel vehicleModel = VehicleModel.fromMap(vehicle.data());
         vehicles.add(vehicleModel);
       }
-      box.put('vehicles', jsonEncode(vehicleData));
     } catch (e) {
       log('Error getting vehicles : $e');
     } finally {
@@ -91,11 +79,11 @@ class VehicleController extends GetxController {
           vehicleId: '',
           numberPlate: numberPlateController.text.trim(),
           vehicleModel: vehicleModelController.text.trim(),
-          ownerId: currentUser!.uid,
+          ownerId: subs.user.value!.uid,
           status: 'ACTIVE',
           addedOn: DateTime.now().millisecondsSinceEpoch,
           updatedOn: DateTime.now().millisecondsSinceEpoch,
-          fleetId: currentFleet!.fleetId,
+          fleetId: subs.user.value!.fleetId,
           vehicleRent: rentType.value == 'fixed'
               ? double.parse(fixedRentController.text)
               : rentRules.map((r) => {
@@ -112,7 +100,7 @@ class VehicleController extends GetxController {
         });
         await _firestore
             .collection('fleets')
-            .doc(currentFleet!.fleetId)
+            .doc(subs.user.value!.fleetId)
             .update({
           'vehicles': FieldValue.arrayUnion([vehicleId])
         });
@@ -164,7 +152,10 @@ class VehicleController extends GetxController {
     try {
       isLoading.value = true;
       await _firestore.collection('vehicles').doc(vehicleId).delete();
-      await _firestore.collection('fleets').doc(currentFleet!.fleetId).update({
+      await _firestore
+          .collection('fleets')
+          .doc(subs.user.value!.fleetId)
+          .update({
         'vehicles': FieldValue.arrayRemove([vehicleId])
       });
       Fluttertoast.showToast(msg: 'Vehicle deleted!');

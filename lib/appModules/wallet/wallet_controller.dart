@@ -4,11 +4,14 @@ import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:zero/core/const_page.dart';
 import 'package:zero/core/global_variables.dart';
+import 'package:zero/core/subscriptionsController.dart';
 import 'package:zero/models/notification_model.dart';
 import 'package:zero/models/transaction_model.dart';
 import 'package:flutter_upi_india/flutter_upi_india.dart';
 
 class WalletController extends GetxController {
+  final subs = Get.find<SubscriptionsController>();
+
   @override
   void onInit() {
     fetchTransactions();
@@ -32,7 +35,7 @@ class WalletController extends GetxController {
     try {
       final snapshot = await _firestore
           .collection('transactions')
-          .where('sender_id', isEqualTo: currentUser!.uid)
+          .where('sender_id', isEqualTo: subs.user.value!.uid)
           .get();
 
       transactions.value = snapshot.docs
@@ -60,12 +63,12 @@ class WalletController extends GetxController {
   }
 
   upiPayment() async {
-    String upiId = currentFleet!.upiId!;
-    String name = currentFleet!.bankingName!;
+    String upiId = subs.fleet.value!.upiId!;
+    String name = subs.fleet.value!.bankingName!;
     String amount = payingAmount.text;
     String transactionNote = 'Rent payment';
     final transactionRef =
-        "${currentUser!.uid}_${DateTime.now().millisecondsSinceEpoch.toString()}";
+        "${subs.user.value!.uid}_${DateTime.now().millisecondsSinceEpoch.toString()}";
     List<ApplicationMeta> apps = await UpiPay.getInstalledUpiApplications(
         statusType: UpiApplicationDiscoveryAppStatusType.all);
     if (apps.isEmpty) {
@@ -113,21 +116,21 @@ class WalletController extends GetxController {
 
         TransactionModel transactionModel = TransactionModel(
           transactionId: transactionsRef.id,
-          senderId: currentUser!.uid,
+          senderId: subs.user.value!.uid,
           paymentTime: DateTime.now().millisecondsSinceEpoch,
           amount: double.parse(payingAmount.text),
           status: "PENDING",
-          senderName: currentUser!.fullName,
+          senderName: subs.user.value!.fullName,
           paymentMethod: type,
-          fleetId: currentFleet!.fleetId,
+          fleetId: subs.user.value!.fleetId!,
         );
 
         NotificationModel notificationModel = NotificationModel(
           id: inboxRef.id,
           notificationType: NotificationTypes.payment,
           transaction: transactionModel,
-          senderId: currentUser!.uid,
-          receiverId: currentFleet!.ownerId,
+          senderId: subs.user.value!.uid,
+          receiverId: subs.fleet.value!.ownerId,
           status: 'PENDING',
           timestamp: DateTime.now().millisecondsSinceEpoch,
         );

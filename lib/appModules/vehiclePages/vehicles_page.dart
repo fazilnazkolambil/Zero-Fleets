@@ -144,7 +144,8 @@ class VehiclesPage extends StatelessWidget {
         itemCount: controller.vehicles.length,
         itemBuilder: (context, index) {
           final vehicle = controller.vehicles[index];
-          int vehicleTargetTrips = currentFleet!.targets['vehicle'];
+          int vehicleTargetTrips =
+              controller.subs.fleet.value!.targets['vehicle'];
           final tripCompletion = vehicle.weeklyTrips! /
               (vehicleTargetTrips > 0 ? vehicleTargetTrips : 1);
           Color progressColor;
@@ -242,7 +243,20 @@ class VehiclesPage extends StatelessWidget {
                     ],
                   ),
                 ),
-                title: Text(vehicle.numberPlate),
+                title: Row(
+                  children: [
+                    Text("${vehicle.numberPlate} • "),
+                    Expanded(
+                      child: Text(
+                        vehicle.vehicleModel,
+                        style: Get.textTheme.bodySmall!
+                            .copyWith(color: Colors.grey),
+                        softWrap: true,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    )
+                  ],
+                ),
                 subtitle: Padding(
                   padding: EdgeInsets.only(top: h * 0.01),
                   child: Column(

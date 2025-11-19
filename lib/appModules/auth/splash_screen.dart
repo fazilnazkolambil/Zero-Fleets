@@ -4,9 +4,10 @@ import 'package:get/get.dart';
 import 'package:zero/appModules/auth/auth_controller.dart';
 import 'package:zero/core/const_page.dart';
 import 'package:zero/core/global_variables.dart';
+import 'package:zero/core/subscriptionsController.dart';
 
 class SplashScreen extends GetView<AuthController> {
-  const SplashScreen({super.key});
+  SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

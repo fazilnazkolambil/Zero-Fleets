@@ -6,7 +6,7 @@ import 'package:zero/appModules/home/home_navigation.dart';
 
 class AppPages {
   final routes = [
-    GetPage(name: '/splash', page: () => const SplashScreen()),
+    GetPage(name: '/splash', page: () => SplashScreen()),
     GetPage(name: '/signup', page: () => const SignupPage()),
     GetPage(name: '/login', page: () => const LoginPage()),
     GetPage(name: '/home', page: () => HomeNavigationPage()),

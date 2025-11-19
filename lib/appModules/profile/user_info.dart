@@ -11,7 +11,7 @@ class UserInfoPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(ProfileController());
-    controller.loadUserData(currentUser!.toMap());
+    controller.loadUserData(controller.subs.user.value!.toMap());
     return Scaffold(
       appBar: AppBar(
         title: const Text('Personal Info'),

@@ -5,9 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:zero/core/global_variables.dart';
+import 'package:zero/core/subscriptionsController.dart';
 import 'package:zero/models/notification_model.dart';
 
 class InboxController extends GetxController {
+  final subs = Get.find<SubscriptionsController>();
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   RxBool isLoading = false.obs;
 
@@ -24,7 +27,7 @@ class InboxController extends GetxController {
       print('-- INBOX STREAM --');
       _firestore
           .collection('inbox')
-          .where('receiver_id', isEqualTo: currentUser!.uid)
+          .where('receiver_id', isEqualTo: subs.user.value!.uid)
           .where('status', isEqualTo: "PENDING")
           .snapshots()
           .listen((event) {
@@ -84,7 +87,7 @@ class InboxController extends GetxController {
     try {
       actionLoading.value = true;
       final inboxRef = _firestore.collection('inbox').doc(notificationId);
-      final userRef = _firestore.collection('users').doc(currentUser!.uid);
+      final userRef = _firestore.collection('users').doc(subs.user.value!.uid);
       final fleetRef = _firestore.collection('fleets').doc(fleetId);
 
       _firestore.runTransaction((transaction) async {
@@ -98,7 +101,7 @@ class InboxController extends GetxController {
         transaction
             .update(userRef, {'fleet_id': fleetId, 'user_role': 'DRIVER'});
         transaction.update(fleetRef, {
-          'drivers': FieldValue.arrayUnion([currentUser!.uid])
+          'drivers': FieldValue.arrayUnion([subs.user.value!.uid])
         });
       });
       fetchInbox();
@@ -121,7 +124,7 @@ class InboxController extends GetxController {
       final inboxRef = _firestore.collection('inbox').doc(notificationId);
       final userRef = _firestore.collection('users').doc(driverId);
       final fleetRef =
-          _firestore.collection('fleets').doc(currentUser!.fleetId);
+          _firestore.collection('fleets').doc(subs.user.value!.fleetId);
 
       _firestore.runTransaction((transaction) async {
         final inboxSnap = await transaction.get(inboxRef);
@@ -134,8 +137,8 @@ class InboxController extends GetxController {
           return;
         }
         transaction.update(inboxRef, {'status': 'ACCEPTED'});
-        transaction.update(
-            userRef, {'fleet_id': currentUser!.fleetId, 'user_role': 'DRIVER'});
+        transaction.update(userRef,
+            {'fleet_id': subs.user.value!.fleetId, 'user_role': 'DRIVER'});
         transaction.update(fleetRef, {
           'drivers': FieldValue.arrayUnion([driverId])
         });

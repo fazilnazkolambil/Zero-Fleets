@@ -8,7 +8,7 @@ double w = 0;
 double h = 0;
 String appVersion = '1.0.0.0';
 UserModel? currentUser;
-FleetModel? currentFleet;
+// FleetModel? currentFleet;
 int notificationCounts = 0;
 
 class CustomWidgets {

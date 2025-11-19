@@ -7,10 +7,12 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:zero/core/const_page.dart';
 import 'package:zero/core/global_variables.dart';
+import 'package:zero/core/subscriptionsController.dart';
 import 'package:zero/models/fleet_model.dart';
 import 'package:zero/models/notification_model.dart';
 
 class FleetController extends GetxController {
+  final subs = Get.find<SubscriptionsController>();
   @override
   void onInit() {
     listFleets();
@@ -33,17 +35,18 @@ class FleetController extends GetxController {
   final formkey = GlobalKey<FormState>();
 
   loadFleetData() {
-    fleetNameController.text = currentFleet!.fleetName;
-    contactNumberController.text = currentFleet!.contactNumber;
-    officeAddressController.text = currentFleet!.officeAddress;
+    final fleet = subs.fleet.value!;
+    fleetNameController.text = fleet.fleetName;
+    contactNumberController.text = fleet.contactNumber;
+    officeAddressController.text = fleet.officeAddress;
     latLongController.text =
-        "${currentFleet!.parkingLocation['latitude']}, ${currentFleet!.parkingLocation['longitude']}";
-    driverTargetTrips.text = currentFleet!.targets['driver'].toString();
-    vehicleTargetTrips.text = currentFleet!.targets['vehicle'].toString();
-    upiController.text = currentFleet!.upiId ?? '';
-    bankingNameController.text = currentFleet!.bankingName ?? '';
-    fleetLatLong = currentFleet!.parkingLocation;
-    isFleetHiring.value = currentFleet!.isHiring;
+        "${fleet.parkingLocation['latitude']}, ${fleet.parkingLocation['longitude']}";
+    driverTargetTrips.text = fleet.targets['driver'].toString();
+    vehicleTargetTrips.text = fleet.targets['vehicle'].toString();
+    upiController.text = fleet.upiId ?? '';
+    bankingNameController.text = fleet.bankingName ?? '';
+    fleetLatLong = fleet.parkingLocation;
+    isFleetHiring.value = fleet.isHiring;
   }
 
   RxBool isLoading = false.obs;
@@ -71,11 +74,11 @@ class FleetController extends GetxController {
       NotificationModel notification = NotificationModel(
         id: '',
         notificationType: NotificationTypes.joinRequest,
-        senderId: currentUser!.uid,
+        senderId: subs.user.value!.uid,
         receiverId: ownerId,
         status: 'PENDING',
         timestamp: DateTime.now().millisecondsSinceEpoch,
-        user: currentUser,
+        user: subs.user.value!,
       );
       await _firestore
           .collection('inbox')
@@ -124,25 +127,24 @@ class FleetController extends GetxController {
   updateFleet() async {
     try {
       isLoading.value = true;
-      FleetModel fleetModel = currentFleet!.copyWith(
+      FleetModel fleetModel = subs.fleet.value!.copyWith(
           fleetName: fleetNameController.text.trim(),
           contactNumber: contactNumberController.text.trim(),
           officeAddress: officeAddressController.text.trim(),
           parkingLocation: fleetLatLong,
-          addedOn: DateTime.now().millisecondsSinceEpoch,
           updatedOn: DateTime.now().millisecondsSinceEpoch,
           upiId: upiController.text.isEmpty ? null : upiController.text,
           bankingName: bankingNameController.text.isEmpty
               ? null
               : bankingNameController.text.trim(),
           targets: {
-            'driver': int.tryParse(driverTargetTrips.text) ?? 0,
-            'vehicle': int.tryParse(vehicleTargetTrips.text) ?? 0,
+            'driver': int.tryParse(driverTargetTrips.text.trim()) ?? 0,
+            'vehicle': int.tryParse(vehicleTargetTrips.text.trim()) ?? 0,
           },
           isHiring: isFleetHiring.value);
       await _firestore
           .collection('fleets')
-          .doc(currentUser!.fleetId)
+          .doc(subs.user.value!.fleetId)
           .update(fleetModel.toMap());
       Get.back();
       Fluttertoast.showToast(msg: 'Updation successfull.');

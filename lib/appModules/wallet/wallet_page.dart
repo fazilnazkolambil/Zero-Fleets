@@ -43,7 +43,7 @@ class WalletPage extends StatelessWidget {
   }
 
   Widget _walletHeader(BuildContext context) {
-    final wallet = currentUser!.wallet;
+    final wallet = controller.subs.user.value!.wallet;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -65,9 +65,8 @@ class WalletPage extends StatelessWidget {
             ),
             ElevatedButton.icon(
               onPressed: () {
-                controller.payingAmount.text = currentUser!.wallet < 0
-                    ? (-currentUser!.wallet).toStringAsFixed(2)
-                    : '0';
+                controller.payingAmount.text =
+                    wallet < 0 ? (-wallet).toStringAsFixed(2) : '0';
 
                 showModalBottomSheet(
                     context: context,
@@ -261,6 +260,10 @@ class WalletPage extends StatelessWidget {
               children: [
                 Expanded(
                   child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                      ),
                       onPressed: () async {
                         if (double.parse(controller.payingAmount.text) > 0 &&
                             controller.payingAmount.text.isNotEmpty) {
@@ -303,16 +306,12 @@ class WalletPage extends StatelessWidget {
                               backgroundColor: Colors.red);
                         }
                       },
-                      child: const Text('Pay cash')),
+                      child: const Text('Cash Paid')),
                 ),
                 const SizedBox(width: 10),
-                if (currentFleet!.upiId != null)
+                if (controller.subs.fleet.value!.upiId != null)
                   Expanded(
-                    child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                        ),
+                    child: OutlinedButton(
                         onPressed: () async {
                           if (controller.payingAmount.text.isEmpty ||
                               double.parse(controller.payingAmount.text) <= 0) {

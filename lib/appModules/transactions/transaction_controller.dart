@@ -4,9 +4,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:zero/core/global_variables.dart';
+import 'package:zero/core/subscriptionsController.dart';
 import 'package:zero/models/transaction_model.dart';
 
 class TransactionController extends GetxController {
+  final subs = Get.find<SubscriptionsController>();
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   var weekStart =
       DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1)).obs;
@@ -51,7 +54,7 @@ class TransactionController extends GetxController {
     try {
       final snapshot = await _firestore
           .collection('transactions')
-          .where('fleet_id', isEqualTo: currentUser!.fleetId)
+          .where('fleet_id', isEqualTo: subs.user.value!.fleetId)
           .where('payment_time',
               isGreaterThanOrEqualTo: start.millisecondsSinceEpoch)
           .where('payment_time', isLessThan: end.millisecondsSinceEpoch)

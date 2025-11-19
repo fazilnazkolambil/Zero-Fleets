@@ -9,13 +9,20 @@ import 'package:zero/appModules/dashboard/dashboard_controller.dart';
 import 'package:zero/appModules/driverPages/driver_controller.dart';
 import 'package:zero/appModules/vehiclePages/vehicle_controller.dart';
 import 'package:zero/core/global_variables.dart';
+import 'package:zero/core/subscriptionsController.dart';
 import 'package:zero/models/duty_model.dart';
 import 'package:zero/models/user_model.dart';
 import 'package:zero/models/vehicle_model.dart';
 
 class DutyController extends GetxController {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  @override
+  void onInit() {
+    listVehicles();
+    super.onInit();
+  }
 
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final subs = Get.find<SubscriptionsController>();
   Rxn<VehicleModel> selectedVehicle = Rxn<VehicleModel>();
   Rxn<UserModel> selectedDriver = Rxn<UserModel>();
   RxString dutyHours = '12 hrs'.obs;
@@ -25,6 +32,31 @@ class DutyController extends GetxController {
   final TextEditingController tollController = TextEditingController();
   final TextEditingController cashCollectedController = TextEditingController();
   final TextEditingController fuelExpenseController = TextEditingController();
+
+  RxString searchkey = ''.obs;
+  SearchController searchController = SearchController();
+
+  RxBool isVehiclesLoading = false.obs;
+  RxList<VehicleModel> vehicles = <VehicleModel>[].obs;
+  listVehicles() async {
+    try {
+      isVehiclesLoading.value = true;
+      vehicles.clear();
+      var data = await _firestore
+          .collection('vehicles')
+          .where('fleet_id', isEqualTo: subs.user.value!.fleetId)
+          .where('on_duty', isNull: true)
+          .get();
+      if (data.docs.isNotEmpty) {
+        vehicles.value =
+            data.docs.map((e) => VehicleModel.fromMap(e.data())).toList();
+      }
+    } catch (e) {
+      log('Error getting vehicles in home controller: $e');
+    } finally {
+      isVehiclesLoading.value = false;
+    }
+  }
 
   autoFillData(DutyModel dutyModel) async {
     startTime.value = dutyModel.startTime;
@@ -71,7 +103,8 @@ class DutyController extends GetxController {
       locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
     );
 
-    final Map<String, dynamic> fleetLocation = currentFleet!.parkingLocation;
+    final Map<String, dynamic> fleetLocation =
+        subs.fleet.value!.parkingLocation;
     double distance = Geolocator.distanceBetween(
         fleetLocation['latitude'],
         fleetLocation['longitude'],
@@ -108,9 +141,9 @@ class DutyController extends GetxController {
           int selectedShifts = dutyHours.value == '12 hrs' ? 1 : 2;
           DutyModel newDuty = DutyModel(
               dutyId: dutyRef.id,
-              driverId: currentUser!.uid,
-              fleetId: currentUser!.fleetId!,
-              driverName: currentUser!.fullName,
+              driverId: subs.user.value!.uid,
+              fleetId: subs.user.value!.fleetId!,
+              driverName: subs.user.value!.fullName,
               vehicleId: selectedVehicle.value!.vehicleId,
               vehicleNumber: selectedVehicle.value!.numberPlate,
               startTime: DateTime.now().millisecondsSinceEpoch,
@@ -125,8 +158,8 @@ class DutyController extends GetxController {
               selectedShift: selectedShifts);
           VehicleOnDuty vehicleOnDuty = VehicleOnDuty(
               startTime: DateTime.now().millisecondsSinceEpoch,
-              driverId: currentUser!.uid,
-              driverName: currentUser!.fullName);
+              driverId: subs.user.value!.uid,
+              driverName: subs.user.value!.fullName);
           transaction.set(dutyRef, newDuty.toJson());
           transaction.update(driverRef, {'on_duty': driverOnDuty.toMap()});
           currentUser = currentUser!.copyWith(onDuty: driverOnDuty);
@@ -168,7 +201,8 @@ class DutyController extends GetxController {
     try {
       isDutyLoading.value = true;
       final dutyRef = _firestore.collection('duties').doc(duty.dutyId);
-      final driverRef = _firestore.collection('users').doc(currentUser!.uid);
+      final driverRef =
+          _firestore.collection('users').doc(subs.user.value!.uid);
       final vehicleRef = _firestore.collection('vehicles').doc(duty.vehicleId);
 
       int totalTrips = int.parse(totalTripsController.text);
@@ -236,8 +270,8 @@ class DutyController extends GetxController {
           'total_trips': FieldValue.increment(totalTrips),
           'weekly_trips': FieldValue.increment(totalTrips),
           'last_online': DateTime.now().millisecondsSinceEpoch,
-          'last_driver': currentUser!.fullName,
-          'last_driver_id': currentUser!.uid,
+          'last_driver': subs.user.value!.fullName,
+          'last_driver_id': subs.user.value!.uid,
         });
       });
     } catch (e) {
@@ -298,7 +332,7 @@ class DutyController extends GetxController {
           DutyModel newDuty = DutyModel(
               dutyId: dutyRef.id,
               driverId: selectedDriver.value!.uid,
-              fleetId: currentUser!.fleetId!,
+              fleetId: subs.user.value!.fleetId!,
               driverName: selectedDriver.value!.fullName,
               vehicleId: selectedVehicle.value!.vehicleId,
               vehicleNumber: selectedVehicle.value!.numberPlate,

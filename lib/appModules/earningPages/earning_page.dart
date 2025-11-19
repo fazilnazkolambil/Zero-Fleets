@@ -7,14 +7,16 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:zero/appModules/earningPages/weekly_duties.dart';
 import 'package:zero/core/const_page.dart';
 import 'package:zero/core/global_variables.dart';
+import 'package:zero/core/subscriptionsController.dart';
 
 class EarningPage extends StatelessWidget {
   final EarningsController controller = Get.isRegistered()
       ? Get.find<EarningsController>()
       : Get.put(EarningsController());
+  final subs = Get.find<SubscriptionsController>();
   final String? userId;
   EarningPage({super.key, this.userId}) {
-    controller.fetchWeeklyDuties(userId: userId ?? currentUser!.uid);
+    controller.fetchWeeklyDuties(userId: userId ?? subs.user.value!.uid);
   }
 
   @override
@@ -33,7 +35,7 @@ class EarningPage extends StatelessWidget {
         return SingleChildScrollView(
           child: Column(
             children: [
-              tripCompletiontracking(),
+              if (subs.user.value?.fleetId != null) tripCompletiontracking(),
               const SizedBox(height: 10),
               _chartView(),
               const SizedBox(height: 20),
@@ -48,8 +50,8 @@ class EarningPage extends StatelessWidget {
                         fixedSize: Size(w, 45),
                         backgroundColor: Colors.grey,
                         foregroundColor: Colors.black),
-                    onPressed: () => Get.to(
-                        () => WeeklyDuties(userId: userId ?? currentUser!.uid)),
+                    onPressed: () => Get.to(() =>
+                        WeeklyDuties(userId: userId ?? subs.user.value!.uid)),
                     child: const Text('See weekly activities')),
               )
             ],
@@ -72,19 +74,18 @@ class EarningPage extends StatelessWidget {
                 Icons.arrow_back_ios,
                 size: 18,
               ),
-              onPressed: () =>
-                  controller.previousWeek(userId: userId ?? currentUser!.uid),
+              onPressed: () => controller.previousWeek(
+                  userId: userId ?? subs.user.value!.uid),
             ),
             Text(controller.getWeekRange()),
             IconButton(
               icon: const Icon(Icons.arrow_forward_ios, size: 18),
-              onPressed: DateTime.now()
-                          .difference(controller.weekStart.value)
-                          .inDays <
-                      7
-                  ? null
-                  : () =>
-                      controller.nextWeek(userId: userId ?? currentUser!.uid),
+              onPressed:
+                  DateTime.now().difference(controller.weekStart.value).inDays <
+                          7
+                      ? null
+                      : () => controller.nextWeek(
+                          userId: userId ?? subs.user.value!.uid),
               color: Colors.white,
             ),
           ],
@@ -95,7 +96,7 @@ class EarningPage extends StatelessWidget {
 
   Widget tripCompletiontracking() {
     int targetTrips =
-        currentFleet!.targets['driver'] * controller.totalShifts.value;
+        subs.fleet.value!.targets['driver'] * controller.totalShifts.value;
     final tripCompletion =
         controller.totalTrips.value / (targetTrips > 0 ? targetTrips : 1);
     Color color;

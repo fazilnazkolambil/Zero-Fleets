@@ -8,11 +8,12 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:zero/appModules/transactions/transaction_controller.dart';
 import 'package:zero/core/global_variables.dart';
+import 'package:zero/core/subscriptionsController.dart';
 import 'package:zero/models/duty_model.dart';
 
 class DashboardController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
+  final subs = Get.find<SubscriptionsController>();
   ScrollController scrollController = ScrollController();
   RxBool isFabVisible = true.obs;
   @override
@@ -83,7 +84,7 @@ class DashboardController extends GetxController {
       isDutyLoading.value = true;
       final snapshot = await _firestore
           .collection('duties')
-          .where('fleet_id', isEqualTo: currentUser!.fleetId)
+          .where('fleet_id', isEqualTo: subs.user.value!.fleetId)
           .where('duty_status', isEqualTo: 'COMPLETED')
           .where('start_time',
               isGreaterThanOrEqualTo: start.millisecondsSinceEpoch)

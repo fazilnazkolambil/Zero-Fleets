@@ -1,10 +1,6 @@
-import 'dart:developer';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:new_version_plus/new_version_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zero/appModules/dashboard/dashboard_page.dart';
@@ -18,38 +14,37 @@ import 'package:zero/appModules/transactions/transactions_page.dart';
 import 'package:zero/appModules/vehiclePages/vehicles_page.dart';
 import 'package:zero/core/const_page.dart';
 import 'package:zero/core/global_variables.dart';
-import 'package:zero/models/fleet_model.dart';
-import 'package:zero/models/user_model.dart';
-import 'package:zero/models/vehicle_model.dart';
+import 'package:zero/core/subscriptionsController.dart';
 
 class HomeController extends GetxController {
+  final subs = Get.find<SubscriptionsController>();
   @override
   void onInit() {
-    // streamUser();
-    // if (currentUser != null) {
-    //   loadFleet();
-    // }
     checkForUpdation();
-    listVehicles();
     super.onInit();
   }
 
   RxInt currentIndex = 0.obs;
-  String userRole = currentUser!.userRole ?? 'USER';
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  // final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool hasUpdate = false;
 
   RxString searchkey = ''.obs;
   SearchController searchController = SearchController();
 
   RxList<Map<String, dynamic>> get homePages {
-    switch (userRole) {
+    // String userRole = subs.user.value!.userRole ?? 'USER';
+    switch (subs.user.value!.userRole ?? 'USER') {
       case ('USER'):
         return [
+          // {
+          //   'label': 'Fleets',
+          //   'icon': Icons.home_work,
+          //   'page': FleetListPage(),
+          // },
           {
-            'label': 'Fleets',
-            'icon': Icons.home_work,
-            'page': FleetListPage(),
+            'label': 'Earnings',
+            'icon': Icons.money,
+            'page': EarningPage(),
           },
           {
             'label': 'Inbox',
@@ -124,9 +119,6 @@ class HomeController extends GetxController {
     }
   }
 
-  RxBool isVehiclesLoading = false.obs;
-  RxList<VehicleModel> vehicles = <VehicleModel>[].obs;
-
   Future<void> checkForUpdation() async {
     final newVersion = NewVersionPlus(
       androidId: "com.zerofleets.zerofleets",
@@ -184,26 +176,6 @@ class HomeController extends GetxController {
       }
     } catch (e) {
       debugPrint("Error checking app version: $e");
-    }
-  }
-
-  listVehicles() async {
-    try {
-      isVehiclesLoading.value = true;
-      vehicles.clear();
-      var data = await _firestore
-          .collection('vehicles')
-          .where('fleet_id', isEqualTo: currentUser!.fleetId)
-          .where('on_duty', isNull: true)
-          .get();
-      if (data.docs.isNotEmpty) {
-        vehicles.value =
-            data.docs.map((e) => VehicleModel.fromMap(e.data())).toList();
-      }
-    } catch (e) {
-      log('Error getting vehicles in home controller: $e');
-    } finally {
-      isVehiclesLoading.value = false;
     }
   }
 

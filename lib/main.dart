@@ -15,6 +15,7 @@ void main() async {
   await Hive.openBox('zeroCache');
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   Get.put(ThemeController());
+
   runApp(MyApp());
 }
 

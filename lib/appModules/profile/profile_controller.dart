@@ -8,9 +8,11 @@ import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zero/appModules/auth/auth_controller.dart';
 import 'package:zero/core/global_variables.dart';
+import 'package:zero/core/subscriptionsController.dart';
 
 class ProfileController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final subs = Get.find<SubscriptionsController>();
 
   final nameController = TextEditingController();
   final phoneController = TextEditingController();
@@ -38,7 +40,7 @@ class ProfileController extends GetxController {
   editUserInfo() async {
     try {
       isEditLoading.value = true;
-      _firestore.collection('users').doc(currentUser!.uid).update({
+      _firestore.collection('users').doc(subs.user.value!.uid).update({
         'full_name': nameController.text.trim(),
         'email': emailController.text.trim(),
         'profile_pic_url': profilePicUrl.value,
@@ -58,8 +60,8 @@ class ProfileController extends GetxController {
 
   deleteUser() async {
     try {
-      if (currentFleet!.ownerId == currentUser!.uid) {
-        _firestore.collection('fleets').doc(currentFleet!.fleetId).delete();
+      if (subs.fleet.value!.ownerId == subs.user.value!.uid) {
+        _firestore.collection('fleets').doc(subs.user.value!.fleetId).delete();
       } else {
         leaveFleet();
       }
@@ -92,8 +94,8 @@ class ProfileController extends GetxController {
 
   RxBool isLoading = false.obs;
   Future<void> leaveFleet() async {
-    String fleetId = currentFleet!.fleetId;
-    final userRef = _firestore.collection('users').doc(currentUser!.uid);
+    String fleetId = subs.fleet.value!.fleetId;
+    final userRef = _firestore.collection('users').doc(subs.user.value!.uid);
     final fleetRef = _firestore.collection('fleets').doc(fleetId);
 
     _firestore.runTransaction(
@@ -105,7 +107,7 @@ class ProfileController extends GetxController {
         }
         transaction.update(userRef, {'fleet_id': null, 'user_role': 'USER'});
         transaction.update(fleetRef, {
-          'drivers': FieldValue.arrayRemove([currentUser!.uid])
+          'drivers': FieldValue.arrayRemove([subs.user.value!.uid])
         });
       },
     );
@@ -113,9 +115,9 @@ class ProfileController extends GetxController {
   }
 
   Future<void> deleteFleet() async {
-    String fleetId = currentFleet!.fleetId;
+    String fleetId = subs.fleet.value!.fleetId;
     final fleetRef = _firestore.collection('fleets').doc(fleetId);
-    final userRef = _firestore.collection('users').doc(currentUser!.uid);
+    final userRef = _firestore.collection('users').doc(subs.user.value!.uid);
 
     _firestore.runTransaction(
       (transaction) async {

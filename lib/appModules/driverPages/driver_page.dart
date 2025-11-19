@@ -153,8 +153,8 @@ class DriversPage extends StatelessWidget {
         itemCount: controller.driverList.length,
         itemBuilder: (context, index) {
           final driver = controller.driverList[index];
-          int targetTrips =
-              currentFleet!.targets['driver']! * driver.weeklyShift!;
+          int targetTrips = controller.subs.fleet.value!.targets['driver']! *
+              driver.weeklyShift!;
           final tripCompletion =
               driver.weeklyTrip! / (targetTrips > 0 ? targetTrips : 1);
           return Card(

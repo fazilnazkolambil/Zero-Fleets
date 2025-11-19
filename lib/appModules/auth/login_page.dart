@@ -15,6 +15,7 @@ class LoginPage extends GetView<AuthController> {
   Widget build(BuildContext context) {
     double h = MediaQuery.of(context).size.height;
     double w = MediaQuery.of(context).size.width;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -93,6 +94,10 @@ class LoginPage extends GetView<AuthController> {
     required double h,
     required double w,
   }) {
+    if (controller.authStatus.value == AuthStatus.initial) {
+      controller.otpController.clear();
+      controller.authError.value = '';
+    }
     return Form(
       key: controller.loginFormkey,
       child: Column(

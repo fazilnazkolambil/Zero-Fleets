@@ -8,6 +8,7 @@ import 'package:zero/appModules/dutyPages/duty_page.dart';
 import 'package:zero/appModules/home/home_controller.dart';
 import 'package:zero/core/const_page.dart';
 import 'package:zero/core/global_variables.dart';
+import 'package:zero/models/user_model.dart';
 import 'package:zero/models/vehicle_model.dart';
 
 class HomePage extends StatelessWidget {
@@ -15,9 +16,10 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     w = MediaQuery.of(context).size.width;
-    final HomeController homeController = Get.find<HomeController>();
+    // final dutyController dutyController = Get.find<dutyController>();
     final DutyController dutyController = Get.put(DutyController());
-    if (currentUser!.onDuty != null) {
+    final user = dutyController.subs.user.value!;
+    if (user.onDuty != null) {
       return DutyPage();
     }
     return Scaffold(
@@ -50,7 +52,7 @@ class HomePage extends StatelessWidget {
                     onChanged: (value) =>
                         dutyController.dutyHours.value = value.toString()),
                 const SizedBox(width: 20),
-                _startDuty(dutyController),
+                _startDuty(dutyController, user),
                 const SizedBox(width: 20),
                 IconButton(
                     onPressed: () =>
@@ -60,23 +62,23 @@ class HomePage extends StatelessWidget {
             ),
           );
         }),
-        appBar: currentUser!.userRole == 'VEHICLE_OWNER'
+        appBar: user.userRole == 'VEHICLE_OWNER'
             ? null
             : AppBar(
-                title: _searchbar(homeController),
+                title: _searchbar(dutyController),
               ),
         body: RefreshIndicator(
           color: ColorConst.primaryColor,
-          onRefresh: () => homeController.listVehicles(),
+          onRefresh: () => dutyController.listVehicles(),
           child: Obx(
             () {
-              if (homeController.isVehiclesLoading.value) {
+              if (dutyController.isVehiclesLoading.value) {
                 return const Center(child: CupertinoActivityIndicator());
               }
-              if (currentUser!.userRole == 'VEHICLE_OWNER') {
-                return _carOwnerView(homeController);
+              if (user.userRole == 'VEHICLE_OWNER') {
+                return _carOwnerView(dutyController);
               } else {
-                return _vehicleList(homeController, dutyController);
+                return _vehicleList(dutyController);
               }
             },
           ),
@@ -102,7 +104,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  _startDuty(DutyController dutyController) {
+  _startDuty(DutyController dutyController, UserModel user) {
     return Obx(
       () => ElevatedButton(
         style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
@@ -135,7 +137,7 @@ class HomePage extends StatelessWidget {
                           TextButton(
                               onPressed: () async {
                                 await dutyController.startDuty(
-                                    userId: currentUser!.uid);
+                                    userId: user.uid);
                                 Get.offAllNamed('/home');
                               },
                               child: const Text('Yes, confirm')),
@@ -158,7 +160,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  _searchbar(HomeController controller) {
+  _searchbar(DutyController controller) {
     return TextFormField(
       controller: controller.searchController,
       onChanged: (value) {
@@ -179,7 +181,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  _vehicleList(HomeController controller, DutyController dutyController) {
+  _vehicleList(DutyController controller) {
     List<VehicleModel> filteredAssets = controller.searchkey.value.isEmpty
         ? controller.vehicles
         : controller.vehicles.where((e) {
@@ -208,10 +210,10 @@ class HomePage extends StatelessWidget {
       itemBuilder: (context, index) {
         final vehicle = filteredAssets[index];
         return Obx(() {
-          bool isSelected = dutyController.selectedVehicle.value == vehicle;
+          bool isSelected = controller.selectedVehicle.value == vehicle;
           return GestureDetector(
             onTap: () {
-              dutyController.selectedVehicle.value = vehicle;
+              controller.selectedVehicle.value = vehicle;
             },
             child: Container(
               margin: const EdgeInsets.only(bottom: 12),
@@ -266,7 +268,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  _carOwnerView(HomeController controller) {
+  _carOwnerView(DutyController controller) {
     VehicleModel vehicle = controller.vehicles.first;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
